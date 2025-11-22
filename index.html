@@ -50,6 +50,14 @@
       <p class="text-sm opacity-70 mb-4">Please enter your API Access Token to continue.</p>
       <input type="password" id="api-key-input" placeholder="Enter API Key" class="w-full px-4 py-3 rounded-lg bg-black/40 border border-white/10 focus:border-violet-500 focus:outline-none mb-4 text-white" />
       
+      <input type="text" id="cf-client-id" placeholder="CF Access Client ID" class="w-full px-4 py-3 rounded-lg bg-black/40 border border-white/10 focus:border-violet-500 focus:outline-none mb-4 text-white" />
+      <input type="password" id="cf-client-secret" placeholder="CF Access Client Secret" class="w-full px-4 py-3 rounded-lg bg-black/40 border border-white/10 focus:border-violet-500 focus:outline-none mb-4 text-white" />
+      
+      <div class="mb-4">
+        <label class="text-[10px] uppercase tracking-wide opacity-60 mb-1 block">API Endpoint (CORS Proxy if needed)</label>
+        <input type="text" id="api-endpoint" placeholder="https://api.lifebite.app" class="w-full px-4 py-3 rounded-lg bg-black/40 border border-white/10 focus:border-violet-500 focus:outline-none text-white text-xs" />
+      </div>
+
       <div class="flex items-center gap-2 mb-4">
         <input type="checkbox" id="remember-me" class="w-4 h-4 rounded border-white/10 bg-black/40 accent-violet-600 focus:ring-violet-500">
         <label for="remember-me" class="text-xs opacity-70 cursor-pointer select-none">Remember me (Save to LocalStorage)</label>
@@ -183,22 +191,41 @@
   </div>
 
   <script>
-    const API_BASE = "https://api.lifebite.app"; 
+    // Removed const API_BASE. Using dynamic getter.
+    function getApiBase() {
+      return localStorage.getItem('MICROHYPER_API_BASE') || sessionStorage.getItem('MICROHYPER_API_BASE') || "https://test.me";
+    }
     
     // --- Auth Logic ---
     function getStoredKey() {
       return sessionStorage.getItem('MICROHYPER_API_KEY') || localStorage.getItem('MICROHYPER_API_KEY');
     }
 
+    function getStoredCfCreds() {
+      const id = sessionStorage.getItem('MICROHYPER_CF_ID') || localStorage.getItem('MICROHYPER_CF_ID');
+      const secret = sessionStorage.getItem('MICROHYPER_CF_SECRET') || localStorage.getItem('MICROHYPER_CF_SECRET');
+      return { id, secret };
+    }
+
     function clearStoredKey() {
       sessionStorage.removeItem('MICROHYPER_API_KEY');
       localStorage.removeItem('MICROHYPER_API_KEY');
+      sessionStorage.removeItem('MICROHYPER_CF_ID');
+      localStorage.removeItem('MICROHYPER_CF_ID');
+      sessionStorage.removeItem('MICROHYPER_CF_SECRET');
+      localStorage.removeItem('MICROHYPER_CF_SECRET');
     }
 
     axios.interceptors.request.use(config => {
       const apiKey = getStoredKey();
+      const { id, secret } = getStoredCfCreds();
+
       if (apiKey) {
         config.headers['X-API-Key'] = apiKey;
+      }
+      if (id && secret) {
+        config.headers['CF-Access-Client-Id'] = id;
+        config.headers['CF-Access-Client-Secret'] = secret;
       }
       return config;
     }, error => Promise.reject(error));
@@ -213,6 +240,9 @@
 
     function showApiKeyModal() {
       const modal = document.getElementById('api-key-modal');
+      // Pre-fill endpoint
+      document.getElementById('api-endpoint').value = getApiBase();
+      
       modal.classList.remove('hidden');
       // Small delay to allow display change to render before opacity transition
       setTimeout(() => {
@@ -222,14 +252,27 @@
 
     function saveApiKey() {
       const input = document.getElementById('api-key-input');
+      const cfIdInput = document.getElementById('cf-client-id');
+      const cfSecretInput = document.getElementById('cf-client-secret');
+      const endpointInput = document.getElementById('api-endpoint');
       const rememberMe = document.getElementById('remember-me').checked;
+      
       const key = input.value.trim();
+      const cfId = cfIdInput.value.trim();
+      const cfSecret = cfSecretInput.value.trim();
+      const endpoint = endpointInput.value.trim() || "https://api.lifebite.app";
       
       if (key) {
         if (rememberMe) {
           localStorage.setItem('MICROHYPER_API_KEY', key);
+          localStorage.setItem('MICROHYPER_API_BASE', endpoint);
+          if (cfId) localStorage.setItem('MICROHYPER_CF_ID', cfId);
+          if (cfSecret) localStorage.setItem('MICROHYPER_CF_SECRET', cfSecret);
         } else {
           sessionStorage.setItem('MICROHYPER_API_KEY', key);
+          sessionStorage.setItem('MICROHYPER_API_BASE', endpoint);
+          if (cfId) sessionStorage.setItem('MICROHYPER_CF_ID', cfId);
+          if (cfSecret) sessionStorage.setItem('MICROHYPER_CF_SECRET', cfSecret);
         }
         
         const modal = document.getElementById('api-key-modal');
@@ -320,7 +363,7 @@
         follow_signal: !counter
       };
       try {
-        const res = await axios.post(`${API_BASE}/trade`, payload);
+        const res = await axios.post(`${getApiBase()}/trade`, payload);
         if (res.data.status === 'filled') {
           showToast(`Trade executed successfully! Size: ${res.data.detail.size}`);
         } else {
@@ -329,7 +372,8 @@
         fetchStatus();
       } catch (err) {
         const errorMessage = err.response?.data?.detail || err.message;
-        showToast(`Trade failed: ${errorMessage}`, true);
+        const isCors = err.code === "ERR_NETWORK" && !err.response;
+        showToast(isCors ? "Network Error (CORS? Check Console)" : `Trade failed: ${errorMessage}`, true);
       } finally {
         setLoading(false);
         if(btn) btn.innerHTML = originalContent;
@@ -351,7 +395,7 @@
       showToast("AI Analyzing market...", false);
       
       try {
-        const res = await axios.post(`${API_BASE}/trade/ai`, payload);
+        const res = await axios.post(`${getApiBase()}/trade/ai`, payload);
         if (res.data.status === 'filled') {
           const direction = res.data.signal.signal;
           showToast(`AI Executed ${direction}! Size: ${res.data.detail.size}`);
@@ -363,7 +407,8 @@
         fetchStatus();
       } catch (err) {
         const errorMessage = err.response?.data?.detail || err.message;
-        showToast(`AI Trade failed: ${errorMessage}`, true);
+        const isCors = err.code === "ERR_NETWORK" && !err.response;
+        showToast(isCors ? "Network Error (CORS? Check Console)" : `AI Trade failed: ${errorMessage}`, true);
       } finally {
         setLoading(false);
         btn.innerHTML = originalContent;
@@ -378,7 +423,7 @@
 
       const pair = document.getElementById("pair").value;
       try {
-        const res = await axios.post(`${API_BASE}/cancel_orders`, { pair });
+        const res = await axios.post(`${getApiBase()}/cancel_orders`, { pair });
         showToast(res.data.message || "Open orders cancelled");
         fetchStatus();
       } catch (err) {
@@ -398,7 +443,7 @@
 
       const pair = document.getElementById("pair").value;
       try {
-        const res = await axios.post(`${API_BASE}/close_position`, { pair });
+        const res = await axios.post(`${getApiBase()}/close_position`, { pair });
         showToast(res.data.message || "Position close submitted");
         fetchStatus();
       } catch (err) {
@@ -427,7 +472,7 @@
       }
 
       try {
-        const res = await axios.post(`${API_BASE}/update_tp`, { pair, price });
+        const res = await axios.post(`${getApiBase()}/update_tp`, { pair, price });
         showToast("TP Updated Successfully");
         fetchStatus();
       } catch (err) {
@@ -529,7 +574,7 @@
     async function fetchStatus() {
       try {
         const pair = document.getElementById("pair").value;
-        const res = await axios.get(`${API_BASE}/status?pair=${pair}`);
+        const res = await axios.get(`${getApiBase()}/status?pair=${pair}`);
         renderStatus(res.data);
       } catch (err) {
         console.error("Failed to fetch status:", err);
@@ -554,7 +599,7 @@
         // 3m: 40 candles = 2 hours (but let's keep 60 for 3h history which is better context)
         const limit = chartInterval === '1m' ? 120 : 60;
         
-        const res = await axios.get(`${API_BASE}/ohlcv?symbol=${symbol}&interval=${chartInterval}&limit=${limit}`);
+        const res = await axios.get(`${getApiBase()}/ohlcv?symbol=${symbol}&interval=${chartInterval}&limit=${limit}`);
         const data = res.data || [];
         if (!Array.isArray(data) || data.length === 0) return;
 
