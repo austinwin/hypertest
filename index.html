@@ -17,6 +17,8 @@
     .signal-short { background: linear-gradient(45deg, #ef4444, #dc2626); }
     .pulse { animation: pulse 2s infinite; }
     @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+    .spin { animation: spin 1s linear infinite; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
     #toast {
       transition: transform 0.5s ease-in-out, opacity 0.5s ease-in-out;
@@ -40,8 +42,8 @@
     <div id="status-dashboard" class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4 text-center">
       <div id="status-current-price" class="glass rounded-lg p-3 md:p-4"></div>
       <div id="status-available-margin" class="glass rounded-lg p-3 md:p-4"></div>
-      <div id="status-open-position" class="glass rounded-lg p-3 md:p-4 col-span-2 md:col-span-1"></div>
-      <div id="status-open-orders" class="glass rounded-lg p-3 md:p-4 col-span-2 md:col-span-1"></div>
+      <div id="status-open-position" class="glass rounded-lg p-3 md:p-4"></div>
+      <div id="status-open-orders" class="glass rounded-lg p-3 md:p-4"></div>
     </div>
 
     <div class="grid lg:grid-cols-2 gap-4">
@@ -50,7 +52,7 @@
         <div class="glass rounded-2xl p-4 md:p-6 glow">
           <div class="flex items-center justify-between mb-4">
             <h2 class="text-xl md:text-2xl font-bold flex items-center gap-2">
-              <i class="fas fa-chart-line text-green-400"></i> Manual Trade
+              <i class="fas fa-chart-line text-green-400"></i> Microloop
             </h2>
             <div class="flex gap-2 text-xs md:text-sm">
               <button id="btn-close-position" class="px-3 py-1.5 rounded-lg bg-red-600/80 hover:bg-red-700 flex items-center gap-1" onclick="closePosition()">
@@ -62,11 +64,11 @@
             </div>
           </div>
 
-          <div class="grid md:grid-cols-4 gap-3 mb-4 items-end">
+          <div class="grid grid-cols-12 gap-2 mb-4 items-end">
             <!-- Pair -->
-            <div class="md:col-span-1">
-              <label class="block text-xs font-medium mb-1">Pair</label>
-              <select id="pair" class="w-full px-3 py-2 rounded-lg bg-white/10 border border-white/15 focus:border-violet-500 focus:outline-none text-sm">
+            <div class="col-span-4 md:col-span-3">
+              <label class="block text-[10px] font-bold uppercase tracking-wide mb-1 opacity-70">Pair</label>
+              <select id="pair" class="w-full px-2 py-2 rounded-lg bg-white/10 border border-white/15 focus:border-violet-500 focus:outline-none text-sm">
                 <option>SOL/USD</option>
                 <option>BTC/USD</option>
                 <option>ETH/USD</option>
@@ -78,21 +80,21 @@
             </div>
 
             <!-- Leverage -->
-            <div class="md:col-span-1">
-              <label class="block text-xs font-medium mb-1">Leverage</label>
-              <input type="number" id="leverage" value="20" min="1" max="50" class="w-full px-3 py-2 rounded-lg bg-white/10 border border-white/15 focus:border-violet-500 focus:outline-none text-sm"/>
+            <div class="col-span-3 md:col-span-2">
+              <label class="block text-[10px] font-bold uppercase tracking-wide mb-1 opacity-70">Lev</label>
+              <input type="number" id="leverage" value="20" min="1" max="50" class="w-full px-2 py-2 rounded-lg bg-white/10 border border-white/15 focus:border-violet-500 focus:outline-none text-sm text-center"/>
             </div>
 
             <!-- Position Size USD -->
-            <div class="md:col-span-1">
-              <label class="block text-xs font-medium mb-1">Size (USD)</label>
-              <input type="number" step="1" id="size_usd" value="50" min="1" class="w-full px-3 py-2 rounded-lg bg-white/10 border border-white/15 focus:border-violet-500 focus:outline-none text-sm"/>
+            <div class="col-span-5 md:col-span-2">
+              <label class="block text-[10px] font-bold uppercase tracking-wide mb-1 opacity-70">Size ($)</label>
+              <input type="number" step="1" id="size_usd" value="50" min="1" class="w-full px-2 py-2 rounded-lg bg-white/10 border border-white/15 focus:border-violet-500 focus:outline-none text-sm"/>
             </div>
 
             <!-- Take Profit Price -->
-            <div class="md:col-span-4">
-              <label class="block text-xs font-medium mb-1">Take Profit Price (optional)</label>
-              <input type="number" step="0.01" id="tp_price" placeholder="Leave empty for no TP" class="w-full px-3 py-2 rounded-lg bg-white/10 border border-white/15 focus:border-violet-500 focus:outline-none text-sm"/>
+            <div class="col-span-12 md:col-span-5">
+              <label class="block text-[10px] font-bold uppercase tracking-wide mb-1 opacity-70">TP <span class="font-normal normal-case opacity-50">(Optional)</span></label>
+              <input type="number" step="0.01" id="tp_price" placeholder="Price" class="w-full px-3 py-2 rounded-lg bg-white/10 border border-white/15 focus:border-violet-500 focus:outline-none text-sm"/>
             </div>
           </div>
 
@@ -114,13 +116,13 @@
           </div>
 
           <div class="flex gap-3">
-            <button onclick="executeTrade('LONG')" class="flex-1 py-3 btn-primary rounded-xl font-semibold text-base bg-gradient-to-r from-green-600 to-emerald-700 hover:from-green-700 hover:to-emerald-800 flex items-center justify-center gap-2">
+            <button id="btn-long" onclick="executeTrade('LONG')" class="flex-1 py-3 btn-primary rounded-xl font-semibold text-base bg-gradient-to-r from-green-600 to-emerald-700 hover:from-green-700 hover:to-emerald-800 flex items-center justify-center gap-2">
               <i class="fas fa-arrow-up"></i><span>Long</span>
             </button>
-            <button onclick="executeAITrade()" class="flex-1 py-3 btn-primary rounded-xl font-semibold text-base bg-gradient-to-r from-violet-600 to-purple-700 hover:from-violet-700 hover:to-purple-800 flex items-center justify-center gap-2">
+            <button id="btn-ai" onclick="executeAITrade()" class="flex-1 py-3 btn-primary rounded-xl font-semibold text-base bg-gradient-to-r from-violet-600 to-purple-700 hover:from-violet-700 hover:to-purple-800 flex items-center justify-center gap-2">
               <i class="fas fa-robot"></i><span>AI</span>
             </button>
-            <button onclick="executeTrade('SHORT')" class="flex-1 py-3 btn-primary rounded-xl font-semibold text-base bg-gradient-to-r from-red-600 to-rose-700 hover:from-red-700 hover:to-rose-800 flex items-center justify-center gap-2">
+            <button id="btn-short" onclick="executeTrade('SHORT')" class="flex-1 py-3 btn-primary rounded-xl font-semibold text-base bg-gradient-to-r from-red-600 to-rose-700 hover:from-red-700 hover:to-rose-800 flex items-center justify-center gap-2">
               <i class="fas fa-arrow-down"></i><span>Short</span>
             </button>
           </div>
@@ -146,6 +148,31 @@
     const API_BASE = "http://192.168.1.167:8000"; // Change to your deployed URL, or leave empty if same origin
     let selectedDirection = "LONG";
     let chartInterval = "3m"; // Default to 3m
+
+    function setLoading(isLoading, btnId = null) {
+      const buttons = document.querySelectorAll('button');
+      buttons.forEach(btn => {
+        if (isLoading) {
+          btn.disabled = true;
+          btn.classList.add('opacity-50', 'cursor-not-allowed');
+        } else {
+          btn.disabled = false;
+          btn.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+      });
+
+      if (btnId) {
+        const btn = document.getElementById(btnId);
+        if (isLoading) {
+          const originalContent = btn.innerHTML;
+          btn.setAttribute('data-original-content', originalContent);
+          btn.innerHTML = `<i class="fas fa-circle-notch spin"></i>`;
+        } else {
+          const originalContent = btn.getAttribute('data-original-content');
+          if (originalContent) btn.innerHTML = originalContent;
+        }
+      }
+    }
 
     function showToast(message, isError = false) {
       const toast = document.getElementById("toast");
@@ -175,6 +202,14 @@
     async function executeTrade(direction, counter = false) {
       // Fallback to currently selectedDirection if direction not provided
       const finalDirection = direction || selectedDirection;
+      
+      const btnId = finalDirection === 'LONG' ? 'btn-long' : 'btn-short';
+      const btn = document.getElementById(btnId);
+      const originalContent = btn ? btn.innerHTML : '';
+      if(btn) btn.innerHTML = `<i class="fas fa-circle-notch spin"></i>`;
+      
+      setLoading(true);
+      
       const payload = {
         pair: document.getElementById("pair").value,
         direction: finalDirection,
@@ -194,10 +229,18 @@
       } catch (err) {
         const errorMessage = err.response?.data?.detail || err.message;
         showToast(`Trade failed: ${errorMessage}`, true);
+      } finally {
+        setLoading(false);
+        if(btn) btn.innerHTML = originalContent;
       }
     }
 
     async function executeAITrade() {
+      const btn = document.getElementById('btn-ai');
+      const originalContent = btn.innerHTML;
+      btn.innerHTML = `<i class="fas fa-circle-notch spin"></i>`;
+      setLoading(true);
+
       const payload = {
         pair: document.getElementById("pair").value,
         leverage: parseFloat(document.getElementById("leverage").value),
@@ -220,10 +263,18 @@
       } catch (err) {
         const errorMessage = err.response?.data?.detail || err.message;
         showToast(`AI Trade failed: ${errorMessage}`, true);
+      } finally {
+        setLoading(false);
+        btn.innerHTML = originalContent;
       }
     }
 
     async function cancelOpenOrders() {
+      const btn = document.getElementById('btn-cancel-orders');
+      const originalContent = btn.innerHTML;
+      btn.innerHTML = `<i class="fas fa-circle-notch spin"></i>`;
+      setLoading(true);
+
       const pair = document.getElementById("pair").value;
       try {
         const res = await axios.post(`${API_BASE}/cancel_orders`, { pair });
@@ -232,10 +283,18 @@
       } catch (err) {
         const errorMessage = err.response?.data?.detail || err.message;
         showToast(`Cancel orders failed: ${errorMessage}`, true);
+      } finally {
+        setLoading(false);
+        btn.innerHTML = originalContent;
       }
     }
 
     async function closePosition() {
+      const btn = document.getElementById('btn-close-position');
+      const originalContent = btn.innerHTML;
+      btn.innerHTML = `<i class="fas fa-circle-notch spin"></i>`;
+      setLoading(true);
+
       const pair = document.getElementById("pair").value;
       try {
         const res = await axios.post(`${API_BASE}/close_position`, { pair });
@@ -244,6 +303,9 @@
       } catch (err) {
         const errorMessage = err.response?.data?.detail || err.message;
         showToast(`Close position failed: ${errorMessage}`, true);
+      } finally {
+        setLoading(false);
+        btn.innerHTML = originalContent;
       }
     }
 
