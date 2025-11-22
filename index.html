@@ -117,6 +117,9 @@
             <button onclick="executeTrade('LONG')" class="flex-1 py-3 btn-primary rounded-xl font-semibold text-base bg-gradient-to-r from-green-600 to-emerald-700 hover:from-green-700 hover:to-emerald-800 flex items-center justify-center gap-2">
               <i class="fas fa-arrow-up"></i><span>Long</span>
             </button>
+            <button onclick="executeAITrade()" class="flex-1 py-3 btn-primary rounded-xl font-semibold text-base bg-gradient-to-r from-violet-600 to-purple-700 hover:from-violet-700 hover:to-purple-800 flex items-center justify-center gap-2">
+              <i class="fas fa-robot"></i><span>AI</span>
+            </button>
             <button onclick="executeTrade('SHORT')" class="flex-1 py-3 btn-primary rounded-xl font-semibold text-base bg-gradient-to-r from-red-600 to-rose-700 hover:from-red-700 hover:to-rose-800 flex items-center justify-center gap-2">
               <i class="fas fa-arrow-down"></i><span>Short</span>
             </button>
@@ -191,6 +194,32 @@
       } catch (err) {
         const errorMessage = err.response?.data?.detail || err.message;
         showToast(`Trade failed: ${errorMessage}`, true);
+      }
+    }
+
+    async function executeAITrade() {
+      const payload = {
+        pair: document.getElementById("pair").value,
+        leverage: parseFloat(document.getElementById("leverage").value),
+        trade_size_usd: parseFloat(document.getElementById("size_usd").value)
+      };
+      
+      showToast("AI Analyzing market...", false);
+      
+      try {
+        const res = await axios.post(`${API_BASE}/trade/ai`, payload);
+        if (res.data.status === 'filled') {
+          const direction = res.data.signal.signal;
+          showToast(`AI Executed ${direction}! Size: ${res.data.detail.size}`);
+        } else if (res.data.status === 'skipped') {
+           showToast(`AI decided to wait: ${res.data.reason}`, true);
+        } else {
+          showToast(`Trade status: ${res.data.status}. ${res.data.detail?.detail || ''}`, true);
+        }
+        fetchStatus();
+      } catch (err) {
+        const errorMessage = err.response?.data?.detail || err.message;
+        showToast(`AI Trade failed: ${errorMessage}`, true);
       }
     }
 
