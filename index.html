@@ -55,7 +55,7 @@
       
       <div class="mb-4">
         <label class="text-[10px] uppercase tracking-wide opacity-60 mb-1 block">API Endpoint (CORS Proxy if needed)</label>
-        <input type="text" id="api-endpoint" placeholder="https://api.lifebite.app" class="w-full px-4 py-3 rounded-lg bg-black/40 border border-white/10 focus:border-violet-500 focus:outline-none text-white text-xs" />
+        <input type="text" id="api-endpoint" placeholder="https://test.me" class="w-full px-4 py-3 rounded-lg bg-black/40 border border-white/10 focus:border-violet-500 focus:outline-none text-white text-xs" />
       </div>
 
       <div class="flex items-center gap-2 mb-4">
@@ -260,7 +260,7 @@
       const key = input.value.trim();
       const cfId = cfIdInput.value.trim();
       const cfSecret = cfSecretInput.value.trim();
-      const endpoint = endpointInput.value.trim() || "https://api.lifebite.app";
+      const endpoint = endpointInput.value.trim() || "https://test.me";
       
       if (key) {
         if (rememberMe) {
@@ -373,7 +373,12 @@
       } catch (err) {
         const errorMessage = err.response?.data?.detail || err.message;
         const isCors = err.code === "ERR_NETWORK" && !err.response;
-        showToast(isCors ? "Network Error (CORS? Check Console)" : `Trade failed: ${errorMessage}`, true);
+        if (isCors) {
+            console.warn("CORS Error detected. If using Cloudflare Access, ensure CORS is configured in Zero Trust Dashboard > Access > Applications > Settings > CORS Settings.");
+            showToast("Network Error (CORS? Check Console)", true);
+        } else {
+            showToast(`Trade failed: ${errorMessage}`, true);
+        }
       } finally {
         setLoading(false);
         if(btn) btn.innerHTML = originalContent;
@@ -408,7 +413,12 @@
       } catch (err) {
         const errorMessage = err.response?.data?.detail || err.message;
         const isCors = err.code === "ERR_NETWORK" && !err.response;
-        showToast(isCors ? "Network Error (CORS? Check Console)" : `AI Trade failed: ${errorMessage}`, true);
+        if (isCors) {
+            console.warn("CORS Error detected. If using Cloudflare Access, ensure CORS is configured in Zero Trust Dashboard.");
+            showToast("Network Error (CORS? Check Console)", true);
+        } else {
+            showToast(`AI Trade failed: ${errorMessage}`, true);
+        }
       } finally {
         setLoading(false);
         btn.innerHTML = originalContent;
