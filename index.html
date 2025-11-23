@@ -192,43 +192,59 @@
 
     <!-- Trade History Section -->
     <div class="mt-6">
-      <div class="flex flex-col gap-4 mb-4">
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div class="flex items-center gap-4">
-            <h3 class="text-lg font-bold flex items-center gap-2 opacity-80">
-              <i class="fas fa-history text-violet-400"></i> Trade History
-            </h3>
-            
-            <!-- Range Slider -->
-            <div class="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-full border border-white/10 hover:bg-white/10 transition-colors group">
-                <i class="fas fa-clock text-[10px] opacity-50 group-hover:text-violet-400 transition-colors"></i>
-                <input type="range" id="history-range-slider" min="2" max="168" step="2" value="24" 
-                       class="w-24 md:w-32 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer accent-violet-500 hover:accent-violet-400 transition-all"
-                       oninput="updateHistoryRange(this.value)">
-                <span id="history-range-label" class="text-[10px] font-mono font-bold w-8 text-right text-violet-300">24h</span>
+      <!-- Tabs Navigation -->
+      <div class="flex items-center gap-6 mb-4 border-b border-white/10">
+        <button onclick="switchTab('trades')" id="tab-btn-trades" class="pb-2 border-b-2 border-violet-500 text-white font-bold flex items-center gap-2 transition-all">
+            <i class="fas fa-history text-violet-400"></i> Trade History
+        </button>
+        <button onclick="switchTab('ai-logs')" id="tab-btn-ai-logs" class="pb-2 border-b-2 border-transparent text-white/50 hover:text-white font-bold flex items-center gap-2 transition-all">
+            <i class="fas fa-brain text-violet-400"></i> AI Logs
+        </button>
+      </div>
+
+      <!-- Tab Content: Trades -->
+      <div id="tab-content-trades">
+        <div class="flex flex-col gap-4 mb-4">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="flex items-center gap-4">
+              <!-- Range Slider -->
+              <div class="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-full border border-white/10 hover:bg-white/10 transition-colors group">
+                  <i class="fas fa-clock text-[10px] opacity-50 group-hover:text-violet-400 transition-colors"></i>
+                  <input type="range" id="history-range-slider" min="2" max="168" step="2" value="24" 
+                         class="w-24 md:w-32 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer accent-violet-500 hover:accent-violet-400 transition-all"
+                         oninput="updateHistoryRange(this.value)">
+                  <span id="history-range-label" class="text-[10px] font-mono font-bold w-8 text-right text-violet-300">24h</span>
+              </div>
+            </div>
+
+            <div id="history-stats" class="flex flex-wrap gap-2 text-xs md:justify-end">
+               <!-- Stats injected via JS -->
+               <div class="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 animate-pulse w-32 h-8"></div>
             </div>
           </div>
+        </div>
+        
+        <!-- Desktop Header (Hidden on Mobile) -->
+        <div class="hidden md:grid grid-cols-8 gap-4 px-4 py-2 text-[10px] font-bold opacity-50 uppercase tracking-wider border-b border-white/10 mb-1">
+          <div class="col-span-2">Time</div>
+          <div class="col-span-1">Side</div>
+          <div class="col-span-1 text-right">Price</div>
+          <div class="col-span-1 text-right">Size</div>
+          <div class="col-span-1 text-right">Value</div>
+          <div class="col-span-1 text-right">Fee</div>
+          <div class="col-span-1 text-right">PnL</div>
+        </div>
 
-          <div id="history-stats" class="flex flex-wrap gap-2 text-xs md:justify-end">
-             <!-- Stats injected via JS -->
-             <div class="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 animate-pulse w-32 h-8"></div>
-          </div>
+        <div id="trade-history-container" class="flex flex-col gap-3 md:gap-0 max-h-[400px] overflow-y-auto pr-1">
+          <div class="glass rounded-xl p-4 text-center opacity-50">Loading history...</div>
         </div>
       </div>
-      
-      <!-- Desktop Header (Hidden on Mobile) -->
-      <div class="hidden md:grid grid-cols-8 gap-4 px-4 py-2 text-[10px] font-bold opacity-50 uppercase tracking-wider border-b border-white/10 mb-1">
-        <div class="col-span-2">Time</div>
-        <div class="col-span-1">Side</div>
-        <div class="col-span-1 text-right">Price</div>
-        <div class="col-span-1 text-right">Size</div>
-        <div class="col-span-1 text-right">Value</div>
-        <div class="col-span-1 text-right">Fee</div>
-        <div class="col-span-1 text-right">PnL</div>
-      </div>
 
-      <div id="trade-history-container" class="flex flex-col gap-3 md:gap-0 max-h-[400px] overflow-y-auto pr-1">
-        <div class="glass rounded-xl p-4 text-center opacity-50">Loading history...</div>
+      <!-- Tab Content: AI Logs -->
+      <div id="tab-content-ai-logs" class="hidden">
+        <div id="ai-logs-container" class="flex flex-col gap-3 max-h-[600px] overflow-y-auto pr-1">
+            <div class="glass rounded-xl p-6 text-center opacity-50">Loading AI logs...</div>
+        </div>
       </div>
     </div>
 
@@ -333,6 +349,7 @@
         fetchStatus();
         fetchMiniChart();
         fetchHistory();
+        fetchAiLogs();
       } else {
         input.classList.add('border-red-500');
       }
@@ -343,6 +360,91 @@
     let chartInterval = "3m"; // Default to 3m
     let lastFetchedTrades = [];
     let currentHistoryRange = 24;
+    let currentTab = 'trades';
+
+    // --- Tab Logic ---
+    function switchTab(tab) {
+        currentTab = tab;
+        
+        const btnTrades = document.getElementById('tab-btn-trades');
+        const btnAi = document.getElementById('tab-btn-ai-logs');
+        const contentTrades = document.getElementById('tab-content-trades');
+        const contentAi = document.getElementById('tab-content-ai-logs');
+        
+        if (tab === 'trades') {
+            btnTrades.className = "pb-2 border-b-2 border-violet-500 text-white font-bold flex items-center gap-2 transition-all";
+            btnAi.className = "pb-2 border-b-2 border-transparent text-white/50 hover:text-white font-bold flex items-center gap-2 transition-all";
+            contentTrades.classList.remove('hidden');
+            contentAi.classList.add('hidden');
+            fetchHistory();
+        } else {
+            btnAi.className = "pb-2 border-b-2 border-violet-500 text-white font-bold flex items-center gap-2 transition-all";
+            btnTrades.className = "pb-2 border-b-2 border-transparent text-white/50 hover:text-white font-bold flex items-center gap-2 transition-all";
+            contentAi.classList.remove('hidden');
+            contentTrades.classList.add('hidden');
+            fetchAiLogs();
+        }
+    }
+
+    async function fetchAiLogs() {
+        try {
+            const res = await axios.get(`${getApiBase()}/ai_trades?limit=50`);
+            renderAiLogs(res.data);
+        } catch (err) {
+            console.error("Failed to fetch AI logs:", err);
+        }
+    }
+
+    function renderAiLogs(logs) {
+        const container = document.getElementById('ai-logs-container');
+        if (!logs || logs.length === 0) {
+            container.innerHTML = '<div class="glass rounded-xl p-6 text-center opacity-50">No AI logs found.</div>';
+            return;
+        }
+
+        container.innerHTML = logs.map(log => {
+            const date = new Date(log.timestamp);
+            const dateStr = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            const signal = log.signal_output || {};
+            const direction = log.direction || signal.signal || 'N/A';
+            const isLong = direction === 'LONG';
+            const colorClass = isLong ? 'text-green-400' : (direction === 'SHORT' ? 'text-red-400' : 'text-white');
+            const bgClass = isLong ? 'bg-green-500/10 border-green-500/20' : (direction === 'SHORT' ? 'bg-red-500/10 border-red-500/20' : 'bg-white/5 border-white/10');
+            
+            const confidence = signal.confidence || 'N/A';
+            const rationale = signal.rationale_short || 'No rationale provided.';
+            const score = signal.score !== undefined ? signal.score.toFixed(2) : 'N/A';
+            const timeframe = signal.timeframe_bias || 'N/A';
+
+            return `
+            <div class="glass rounded-xl p-4 border ${bgClass} hover:bg-white/5 transition-colors">
+                <div class="flex justify-between items-start mb-2">
+                    <div class="flex items-center gap-3">
+                        <span class="font-bold text-sm ${colorClass} px-2 py-0.5 rounded bg-black/30 border border-white/5">${direction}</span>
+                        <span class="text-xs opacity-60 font-mono">${log.pair}</span>
+                    </div>
+                    <span class="text-[10px] opacity-40">${dateStr}</span>
+                </div>
+                
+                <div class="mb-3">
+                    <p class="text-xs opacity-90 leading-relaxed italic">"${rationale}"</p>
+                </div>
+                
+                <div class="flex flex-wrap gap-2 text-[10px] uppercase tracking-wide opacity-70">
+                    <div class="px-2 py-1 rounded bg-black/20 border border-white/5">
+                        Conf: <span class="font-bold text-white">${confidence}</span>
+                    </div>
+                    <div class="px-2 py-1 rounded bg-black/20 border border-white/5">
+                        Score: <span class="font-bold text-white">${score}</span>
+                    </div>
+                    <div class="px-2 py-1 rounded bg-black/20 border border-white/5">
+                        TF: <span class="font-bold text-white">${timeframe}</span>
+                    </div>
+                </div>
+            </div>
+            `;
+        }).join('');
+    }
 
     function updateHistoryRange(val) {
       currentHistoryRange = parseInt(val);
@@ -482,6 +584,7 @@
         }
         fetchStatus();
         fetchHistory();
+        fetchAiLogs(); // Refresh AI logs
       } catch (err) {
         const errorMessage = err.response?.data?.detail || err.message;
         const isCors = err.code === "ERR_NETWORK" && !err.response;
@@ -969,7 +1072,12 @@
       if (getStoredKey()) {
         fetchStatus();
         fetchMiniChart();
-        // fetchHistory(); // Optional: Uncomment to auto-refresh history periodically
+        // Refresh based on active tab
+        if (currentTab === 'trades') {
+            fetchHistory();
+        } else if (currentTab === 'ai-logs') {
+            fetchAiLogs();
+        }
       }
     }, 5000); // Refresh every 5 seconds
     
@@ -980,6 +1088,7 @@
         fetchStatus();
         fetchMiniChart();
         fetchHistory();
+        fetchAiLogs();
     }
   </script>
 </body>
