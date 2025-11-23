@@ -428,7 +428,7 @@
         pair: document.getElementById("pair").value,
         direction: finalDirection,
         leverage: parseFloat(document.getElementById("leverage").value),
-        trade_size_usd: parseFloat(document.getElementById("size_usd").value),
+        trade_size_usd: parseFloat(document.getElementById("size_usd").value) * parseFloat(document.getElementById("leverage").value),
         profit_take: document.getElementById("tp_price").value ? parseFloat(document.getElementById("tp_price").value) : null,
         follow_signal: !counter
       };
@@ -465,7 +465,7 @@
       const payload = {
         pair: document.getElementById("pair").value,
         leverage: parseFloat(document.getElementById("leverage").value),
-        trade_size_usd: parseFloat(document.getElementById("size_usd").value)
+        trade_size_usd: parseFloat(document.getElementById("size_usd").value) * parseFloat(document.getElementById("leverage").value)
       };
       
       showToast("AI Analyzing market...", false);
