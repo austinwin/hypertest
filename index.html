@@ -185,6 +185,14 @@
                                 <i class="fas fa-cog text-[20px] text-white/70"></i>
                             </button>
                             <span id="persona-badge" class="text-[9px] font-bold uppercase tracking-wider bg-violet-500/20 px-1.5 py-0.5 rounded border border-violet-500/30 text-violet-200 truncate opacity-0 transition-opacity">--</span>
+                            
+                            <!-- Counter Trade Switch -->
+                            <div class="flex items-center gap-1.5 ml-2 cursor-pointer group" onclick="toggleCounterTrade()" title="Counter Trade Mode (Invert AI Signals)">
+                                <div id="counter-trade-switch" class="w-7 h-3.5 rounded-full bg-white/10 relative transition-colors border border-white/10">
+                                    <div id="counter-trade-knob" class="absolute left-0.5 top-px w-2.5 h-2.5 rounded-full bg-white/40 transition-all"></div>
+                                </div>
+                                <span class="text-[9px] uppercase font-bold opacity-40 transition-colors" id="counter-trade-label">Norm</span>
+                            </div>
                         </div>
                         <div id="bot-status-text" class="text-[10px] opacity-50 whitespace-nowrap leading-none mt-0.5">System Idle</div>
                     </div>
@@ -479,9 +487,46 @@
     let currentHistoryRange = 24;
     let currentTab = 'trades';
     let lastAiSignal = null; // Store last AI signal for modal execution
+    let counterTradeActive = false; // New state
     
     // Store persona preferences per pair locally
     let personaPreferences = {}; 
+
+    // --- Counter Trade Logic ---
+    function toggleCounterTrade() {
+        counterTradeActive = !counterTradeActive;
+        updateCounterTradeUI();
+    }
+
+    function updateCounterTradeUI() {
+        const switchEl = document.getElementById('counter-trade-switch');
+        const knob = document.getElementById('counter-trade-knob');
+        const label = document.getElementById('counter-trade-label');
+        
+        if (counterTradeActive) {
+            switchEl.classList.remove('bg-white/10', 'border-white/10');
+            switchEl.classList.add('bg-amber-500/20', 'border-amber-500/50');
+            
+            knob.classList.add('translate-x-3');
+            knob.classList.remove('bg-white/40');
+            knob.classList.add('bg-amber-400');
+            
+            label.textContent = "Counter";
+            label.classList.remove('opacity-40');
+            label.classList.add('text-amber-400', 'opacity-100');
+        } else {
+            switchEl.classList.add('bg-white/10', 'border-white/10');
+            switchEl.classList.remove('bg-amber-500/20', 'border-amber-500/50');
+            
+            knob.classList.remove('translate-x-3');
+            knob.classList.add('bg-white/40');
+            knob.classList.remove('bg-amber-400');
+            
+            label.textContent = "Norm";
+            label.classList.add('opacity-40');
+            label.classList.remove('text-amber-400', 'opacity-100');
+        }
+    }
 
     // --- Tab Logic ---
     function switchTab(tab) {
@@ -557,6 +602,12 @@
                 icon = "fa-eye";
             }
 
+            const isCounter = bot.counter_trade === true;
+            const modeLabel = isCounter ? "Counter" : "Normal";
+            const modeClass = isCounter 
+                ? "text-amber-400 border-amber-500/30 bg-amber-500/10" 
+                : "text-blue-300 border-blue-500/30 bg-blue-500/10";
+
             return `
             <div class="glass rounded-xl p-4 border ${statusBg} relative overflow-hidden group transition-all hover:scale-[1.02] cursor-pointer" onclick="selectPair('${bot.pair}')">
                 <div class="flex justify-between items-start mb-3">
@@ -566,7 +617,10 @@
                         </div>
                         <div>
                             <div class="font-bold text-base">${bot.pair}</div>
-                            <div class="text-[10px] opacity-60 uppercase tracking-wider">${bot.persona_set.replace(/_/g, ' ')}</div>
+                            <div class="flex items-center gap-2 mt-0.5">
+                                <div class="text-[10px] opacity-60 uppercase tracking-wider">${bot.persona_set.replace(/_/g, ' ')}</div>
+                                <div class="px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wide border ${modeClass}">${modeLabel}</div>
+                            </div>
                         </div>
                     </div>
                     <div class="px-2 py-1 rounded bg-black/20 border border-white/5 text-[10px] font-bold uppercase tracking-wide ${statusColor}">
@@ -799,10 +853,11 @@
         pair: pair,
         leverage: parseFloat(document.getElementById("leverage").value),
         trade_size_usd: parseFloat(document.getElementById("size_usd").value) * parseFloat(document.getElementById("leverage").value),
-        persona_set: currentPersona
+        persona_set: currentPersona,
+        counter_trade: counterTradeActive // Send counter trade flag
       };
       
-      showToast("AI Analyzing market...", false);
+      showToast(`AI Analyzing market... ${counterTradeActive ? '(Counter Mode)' : ''}`, false);
       
       try {
         const res = await axios.post(`${getApiBase()}/trade/ai`, payload);
@@ -1319,7 +1374,7 @@
       // X-Axis (Time) - 6 ticks
       const numXTicks = 6;
       for (let i = 0; i < numXTicks; i++) {
-        const idx = Math.floor((data.length - 1) * (i / (numXTicks - 1)));
+        const idx = Math.floor((data.length -  1) * (i / (numXTicks - 1)));
         const d = data[idx];
         const x = xFor(idx);
         
@@ -1448,6 +1503,14 @@
                 personaPreferences[pair] = data.persona_set;
             }
             
+            // Sync counter trade status if bot is running
+            if (data.running) {
+                if (counterTradeActive !== data.counter_trade) {
+                    counterTradeActive = data.counter_trade;
+                    updateCounterTradeUI();
+                }
+            }
+            
             // Update badge based on preference or running state
             const currentPersona = personaPreferences[pair] || "concise";
             updatePersonaBadge(currentPersona);
@@ -1511,13 +1574,14 @@
            
             trade_size_usd: parseFloat(document.getElementById("size_usd").value) * parseFloat(document.getElementById("leverage").value),
             take_profit: document.getElementById("tp_price").value ? parseFloat(document.getElementById("tp_price").value) : null,
-            persona_set: currentPersona
+            persona_set: currentPersona,
+            counter_trade: counterTradeActive // Send counter trade flag
         };
 
         try {
             const res = await axios.post(`${getApiBase()}/bot/configure`, payload);
             if (res.data.status === "started") {
-                showToast(`Auto Bot Started (${currentPersona})`);
+                showToast(`Auto Bot Started (${currentPersona}${counterTradeActive ? ', Counter' : ''})`);
                 isBotRunning = true;
             } else {
                 showToast("Auto Bot Stopped");
