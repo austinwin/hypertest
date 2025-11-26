@@ -1127,7 +1127,7 @@
                         <th class="p-3 cursor-pointer hover:text-white" onclick="sortPositions('pair')">Pair ${getSortIcon('pair')}</th>
                         <th class="p-3 cursor-pointer hover:text-white" onclick="sortPositions('open_time')">Open Time ${getSortIcon('open_time')}</th>
                         <th class="p-3 text-right cursor-pointer hover:text-white" onclick="sortPositions('entry_price')">Entry ${getSortIcon('entry_price')}</th>
-                        <th class="p-3 text-right cursor-pointer hover:text-white" onclick="sortPositions('margin_used')" Margin ${getSortIcon('margin_used')}</th>
+                        <th class="p-3 text-right cursor-pointer hover:text-white" onclick="sortPositions('margin_used')">Margin ${getSortIcon('margin_used')}</th>
                         <th class="p-3 text-right cursor-pointer hover:text-white" onclick="sortPositions('roi')">% ROI ${getSortIcon('roi')}</th>
                         <th class="p-3 text-right cursor-pointer hover:text-white" onclick="sortPositions('liquidation_price')">Liq Price ${getSortIcon('liquidation_price')}</th>
                         <th class="p-3 text-right cursor-pointer hover:text-white" onclick="sortPositions('tp_price')">TP ${getSortIcon('tp_price')}</th>
@@ -1152,7 +1152,7 @@
                                 <div class="flex items-center gap-2">
                                     <span class="${isLong ? 'text-green-400' : 'text-red-400'}">${pos.pair}</span>
                                     <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-white/10 ${isLong ? 'text-green-400' : 'text-red-400'}">
-                                        ${isLong ? 'LONG' : 'SHORT'}
+                                        ${isLong ? 'LONG' : 'SHORT'} ${pos.leverage}x
                                     </span>
                                 </div>
                             </td>
