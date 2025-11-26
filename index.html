@@ -348,13 +348,16 @@
       <!-- Tabs Navigation -->
       <div class="flex items-center gap-6 mb-4 border-b border-white/10 overflow-x-auto">
         <button onclick="switchTab('trades')" id="tab-btn-trades" class="pb-2 border-b-2 border-violet-500 text-white font-bold flex items-center gap-2 transition-all whitespace-nowrap">
-            <i class="fas fa-history text-violet-400"></i> Trade History
+            <i class="fas fa-history text-violet-400"></i> Hist. Trade
         </button>
         <button onclick="switchTab('ai-logs')" id="tab-btn-ai-logs" class="pb-2 border-b-2 border-transparent text-white/50 hover:text-white font-bold flex items-center gap-2 transition-all whitespace-nowrap">
-            <i class="fas fa-brain text-violet-400"></i> AI Logs
+            <i class="fas fa-brain text-violet-400"></i> AI
         </button>
         <button onclick="switchTab('running-bots')" id="tab-btn-running-bots" class="pb-2 border-b-2 border-transparent text-white/50 hover:text-white font-bold flex items-center gap-2 transition-all whitespace-nowrap">
-            <i class="fas fa-robot text-violet-400"></i> Running Bots
+            <i class="fas fa-robot text-violet-400"></i> Bots
+        </button>
+        <button onclick="switchTab('positions')" id="tab-btn-positions" class="pb-2 border-b-2 border-transparent text-white/50 hover:text-white font-bold flex items-center gap-2 transition-all whitespace-nowrap">
+            <i class="fas fa-list-alt text-violet-400"></i> Positions
         </button>
       </div>
 
@@ -426,6 +429,13 @@
         </div>
         <div id="running-bots-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[600px] overflow-y-auto pr-1">
             <div class="glass rounded-xl p-6 text-center opacity-50 col-span-full">Loading bots...</div>
+        </div>
+      </div>
+
+      <!-- Tab Content: Open Positions -->
+      <div id="tab-content-positions" class="hidden">
+        <div id="open-positions-container">
+            <div class="p-6 text-center opacity-50">Loading positions...</div>
         </div>
       </div>
     </div>
@@ -543,9 +553,11 @@
     let chartInterval = "3m"; // Default to 3m
     let lastFetchedTrades = [];
     let lastFetchedAiLogs = []; // New global
+    let lastFetchedPositions = []; // Store positions for sorting
     let currentAiLogFilter = 'All'; // Persist filter selection
     let currentHistoryRange = 24;
     let currentTab = 'trades';
+    let currentPosSort = { field: 'open_time', dir: 'desc' }; // Sort state for positions
     let lastAiSignal = null; // Store last AI signal for modal execution
     let counterTradeActive = false; // New state
     
@@ -749,16 +761,18 @@
         const btnTrades = document.getElementById('tab-btn-trades');
         const btnAi = document.getElementById('tab-btn-ai-logs');
         const btnBots = document.getElementById('tab-btn-running-bots');
+        const btnPos = document.getElementById('tab-btn-positions');
         
         const contentTrades = document.getElementById('tab-content-trades');
         const contentAi = document.getElementById('tab-content-ai-logs');
         const contentBots = document.getElementById('tab-content-running-bots');
+        const contentPos = document.getElementById('tab-content-positions');
         
         // Reset all
-        [btnTrades, btnAi, btnBots].forEach(btn => {
+        [btnTrades, btnAi, btnBots, btnPos].forEach(btn => {
              if(btn) btn.className = "pb-2 border-b-2 border-transparent text-white/50 hover:text-white font-bold flex items-center gap-2 transition-all whitespace-nowrap";
         });
-        [contentTrades, contentAi, contentBots].forEach(c => {
+        [contentTrades, contentAi, contentBots, contentPos].forEach(c => {
              if(c) c.classList.add('hidden');
         });
 
@@ -775,6 +789,10 @@
             btnBots.className = "pb-2 border-b-2 border-violet-500 text-white font-bold flex items-center gap-2 transition-all whitespace-nowrap";
             contentBots.classList.remove('hidden');
             fetchRunningBots();
+        } else if (tab === 'positions') {
+            btnPos.className = "pb-2 border-b-2 border-violet-500 text-white font-bold flex items-center gap-2 transition-all whitespace-nowrap";
+            contentPos.classList.remove('hidden');
+            fetchOpenPositions();
         }
     }
 
@@ -984,6 +1002,186 @@
         select.dispatchEvent(event);
         // Scroll to top
         window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    async function fetchOpenPositions() {
+        try {
+            const res = await axios.get(`${getApiBase()}/positions`);
+            lastFetchedPositions = res.data;
+            renderOpenPositions();
+        } catch (err) {
+            console.error("Failed to fetch positions:", err);
+            document.getElementById('open-positions-container').innerHTML = '<div class="p-6 text-center text-red-400">Failed to load positions</div>';
+        }
+    }
+
+    function sortPositions(field) {
+        if (currentPosSort.field === field) {
+            currentPosSort.dir = currentPosSort.dir === 'asc' ? 'desc' : 'asc';
+        } else {
+            currentPosSort.field = field;
+            currentPosSort.dir = 'desc';
+        }
+        renderOpenPositions();
+    }
+
+    function renderOpenPositions() {
+        const container = document.getElementById('open-positions-container');
+        const positions = lastFetchedPositions;
+        
+        if (!positions || positions.length === 0) {
+            container.innerHTML = '<div class="glass rounded-xl p-6 text-center opacity-50">No open positions found.</div>';
+            return;
+        }
+
+        // Sort
+        positions.sort((a, b) => {
+            let valA = a[currentPosSort.field];
+            let valB = b[currentPosSort.field];
+            
+            // Handle absolute size for sorting
+            if (currentPosSort.field === 'size') {
+                valA = Math.abs(valA);
+                valB = Math.abs(valB);
+            }
+
+            if (valA < valB) return currentPosSort.dir === 'asc' ? -1 : 1;
+            if (valA > valB) return currentPosSort.dir === 'asc' ? 1 : -1;
+            return 0;
+        });
+
+        const getSortIcon = (field) => {
+            if (currentPosSort.field !== field) return '<i class="fas fa-sort text-white/20 ml-1"></i>';
+            return currentPosSort.dir === 'asc' ? '<i class="fas fa-sort-up text-violet-400 ml-1"></i>' : '<i class="fas fa-sort-down text-violet-400 ml-1"></i>';
+        };
+
+        const html = `
+        <!-- Mobile View (Cards) -->
+        <div class="md:hidden space-y-3">
+            ${positions.map(pos => {
+                const isLong = pos.size > 0;
+                const pnlColor = pos.unrealized_pnl >= 0 ? "text-green-400" : "text-red-400";
+                const pnl = (pos.unrealized_pnl >= 0 ? "+" : "") + "$" + formatPrice(pos.unrealized_pnl);
+                const roiColor = pos.roi >= 0 ? "text-green-400" : "text-red-400";
+                const roi = (pos.roi >= 0 ? "+" : "") + pos.roi.toFixed(2) + "%";
+                const openDate = pos.open_time > 0 ? new Date(pos.open_time) : null;
+                const dateStr = openDate ? openDate.toLocaleString([], {month:'numeric', day:'numeric', hour: '2-digit', minute:'2-digit'}) : '-';
+                const tpPrice = pos.tp_price ? `$${formatPrice(pos.tp_price)}` : '-';
+
+                return `
+                <div class="glass rounded-xl p-4 border-l-4 ${isLong ? 'border-green-500' : 'border-red-500'} hover:bg-white/5 transition-colors" onclick="selectPair('${pos.pair}')">
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <div class="font-bold text-base flex items-center gap-2">
+                                ${pos.pair}
+                                <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-white/10 ${isLong ? 'text-green-400' : 'text-red-400'}">
+                                    ${isLong ? 'LONG' : 'SHORT'} ${pos.leverage}x
+                                </span>
+                            </div>
+                            <div class="text-xs opacity-50 mt-0.5">${dateStr}</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-xs opacity-50 uppercase tracking-wide">PnL</div>
+                            <div class="font-mono font-bold text-sm ${pnlColor}">${pnl}</div>
+                            <div class="text-[10px] font-bold ${roiColor}">${roi}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-4 gap-2 text-xs mt-3 pt-3 border-t border-white/5">
+                        <div>
+                            <div class="opacity-40">Entry</div>
+                            <div class="font-mono">$${formatPrice(pos.entry_price)}</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="opacity-40">Margin</div>
+                            <div class="font-mono">$${formatPrice(pos.margin_used)}</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="opacity-40">Liq</div>
+                            <div class="font-mono text-orange-400">$${formatPrice(pos.liquidation_price)}</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="opacity-40">TP</div>
+                            <div class="font-mono text-blue-300">${tpPrice}</div>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-2 mt-3">
+                        <button onclick="event.stopPropagation(); closePosition('${pos.pair}')" class="flex-1 py-2 rounded bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 text-xs font-bold">
+                            Close
+                        </button>
+                        <button onclick="event.stopPropagation(); cancelOpenOrders('${pos.pair}')" class="flex-1 py-2 rounded bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/20 text-xs font-bold">
+                            Cancel Orders
+                        </button>
+                    </div>
+                </div>
+                `;
+            }).join('')}
+        </div>
+
+        <!-- Desktop View (Table) -->
+        <div class="hidden md:block overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="text-[10px] font-bold uppercase tracking-wider opacity-60 border-b border-white/10 select-none">
+                        <th class="p-3 cursor-pointer hover:text-white" onclick="sortPositions('pair')">Pair ${getSortIcon('pair')}</th>
+                        <th class="p-3 cursor-pointer hover:text-white" onclick="sortPositions('open_time')">Open Time ${getSortIcon('open_time')}</th>
+                        <th class="p-3 text-right cursor-pointer hover:text-white" onclick="sortPositions('entry_price')">Entry ${getSortIcon('entry_price')}</th>
+                        <th class="p-3 text-right cursor-pointer hover:text-white" onclick="sortPositions('margin_used')">Init Margin ${getSortIcon('margin_used')}</th>
+                        <th class="p-3 text-right cursor-pointer hover:text-white" onclick="sortPositions('roi')">% ROI ${getSortIcon('roi')}</th>
+                        <th class="p-3 text-right cursor-pointer hover:text-white" onclick="sortPositions('liquidation_price')">Liq Price ${getSortIcon('liquidation_price')}</th>
+                        <th class="p-3 text-right cursor-pointer hover:text-white" onclick="sortPositions('tp_price')">TP ${getSortIcon('tp_price')}</th>
+                        <th class="p-3 text-right cursor-pointer hover:text-white" onclick="sortPositions('unrealized_pnl')">PnL ${getSortIcon('unrealized_pnl')}</th>
+                        <th class="p-3 text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="text-xs">
+                    ${positions.map(pos => {
+                        const isLong = pos.size > 0;
+                        const pnlColor = pos.unrealized_pnl >= 0 ? "text-green-400" : "text-red-400";
+                        const pnl = (pos.unrealized_pnl >= 0 ? "+" : "") + "$" + formatPrice(pos.unrealized_pnl);
+                        const roiColor = pos.roi >= 0 ? "text-green-400" : "text-red-400";
+                        const roi = (pos.roi >= 0 ? "+" : "") + pos.roi.toFixed(2) + "%";
+                        const openDate = pos.open_time > 0 ? new Date(pos.open_time) : null;
+                        const dateStr = openDate ? openDate.toLocaleString([], {month:'numeric', day:'numeric', hour: '2-digit', minute:'2-digit'}) : '-';
+                        const tpPrice = pos.tp_price ? `$${formatPrice(pos.tp_price)}` : '<span class="opacity-30">-</span>';
+
+                        return `
+                        <tr class="border-b border-white/5 hover:bg-white/5 transition-colors cursor-pointer" onclick="selectPair('${pos.pair}')">
+                            <td class="p-3 font-bold">
+                                <div class="flex items-center gap-2">
+                                    <span class="${isLong ? 'text-green-400' : 'text-red-400'}">${pos.pair}</span>
+                                    <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-white/10 ${isLong ? 'text-green-400' : 'text-red-400'}">
+                                        ${isLong ? 'LONG' : 'SHORT'}
+                                    </span>
+                                </div>
+                            </td>
+                            <td class="p-3 whitespace-nowrap">${dateStr}</td>
+                            <td class="p-3 text-right font-mono">$${formatPrice(pos.entry_price)}</td>
+                            <td class="p-3 text-right font-mono">$${formatPrice(pos.margin_used)}</td>
+                            <td class="p-3 text-right font-mono font-bold ${roiColor}">${roi}</td>
+                            <td class="p-3 text-right font-mono text-orange-400">$${formatPrice(pos.liquidation_price)}</td>
+                            <td class="p-3 text-right font-mono text-blue-300">${tpPrice}</td>
+                            <td class="p-3 text-right font-mono font-bold ${pnlColor}">${pnl}</td>
+                            <td class="p-3 text-center" onclick="event.stopPropagation()">
+                                <div class="flex items-center justify-center gap-2">
+                                    <button onclick="closePosition('${pos.pair}')" class="p-1.5 rounded bg-red-500/20 hover:bg-red-500/40 text-red-400 transition-colors" title="Close Position">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                    <button onclick="cancelOpenOrders('${pos.pair}')" class="p-1.5 rounded bg-amber-500/20 hover:bg-amber-500/40 text-amber-400 transition-colors" title="Cancel Orders">
+                                        <i class="fas fa-ban"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        `;
+                    }).join('')}
+                </tbody>
+            </table>
+        </div>
+        `;
+        
+        container.innerHTML = html;
     }
 
     async function fetchAiLogs() {
@@ -1380,55 +1578,69 @@
         }, 300);
     }
 
-    async function cancelOpenOrders() {
-      const btn = document.getElementById('btn-cancel-orders');
-      const originalContent = btn.innerHTML;
-      btn.innerHTML = `<i class="fas fa-circle-notch spin"></i>`;
-      setLoading(true);
+    async function cancelOpenOrders(targetPair = null) {
+      const btn = !targetPair ? document.getElementById('btn-cancel-orders') : null;
+      const originalContent = btn ? btn.innerHTML : '';
+      if(btn) {
+          btn.innerHTML = `<i class="fas fa-circle-notch spin"></i>`;
+          setLoading(true);
+      }
 
-      const pair = document.getElementById("pair").value;
+      const pair = targetPair || document.getElementById("pair").value;
       try {
         const res = await axios.post(`${getApiBase()}/cancel_orders`, { pair });
         showToast(res.data.message || "Open orders cancelled");
         
-        // Optimistic Update: Clear orders UI immediately
-        document.getElementById('status-open-orders').innerHTML = `
-          <div class="text-xs opacity-70 uppercase tracking-wide">Orders</div>
-          <div class="text-xl md:text-2xl font-bold opacity-50">-</div>
-        `;
+        // Optimistic Update only if current pair
+        if (!targetPair || targetPair === document.getElementById("pair").value) {
+            document.getElementById('status-open-orders').innerHTML = `
+            <div class="text-xs opacity-70 uppercase tracking-wide">Orders</div>
+            <div class="text-xl md:text-2xl font-bold opacity-50">-</div>
+            `;
+            fetchStatus();
+        }
         
-        fetchStatus();
+        // Refresh positions tab if active
+        if (currentTab === 'positions') fetchOpenPositions();
+
       } catch (err) {
         const errorMessage = err.response?.data?.detail || err.message;
         showToast(`Cancel orders failed: ${errorMessage}`, true);
       } finally {
-        setLoading(false);
-        btn.innerHTML = originalContent;
+        if(btn) {
+            setLoading(false);
+            btn.innerHTML = originalContent;
+        }
       }
     }
 
-    async function closePosition() {
-      const btn = document.getElementById('btn-close-position');
-      const originalContent = btn.innerHTML;
-      btn.innerHTML = `<i class="fas fa-circle-notch spin"></i>`;
-      setLoading(true);
+    async function closePosition(targetPair = null) {
+      const btn = !targetPair ? document.getElementById('btn-close-position') : null;
+      const originalContent = btn ? btn.innerHTML : '';
+      if(btn) {
+          btn.innerHTML = `<i class="fas fa-circle-notch spin"></i>`;
+          setLoading(true);
+      }
 
-      const pair = document.getElementById("pair").value;
+      const pair = targetPair || document.getElementById("pair").value;
       try {
         const res = await axios.post(`${getApiBase()}/close_position`, { pair });
         showToast(res.data.message || "Position close submitted");
         
-        // Optimistic Update: Clear position UI immediately
-        document.getElementById('status-open-position').innerHTML = `
-          <div class="text-xs opacity-70 uppercase tracking-wide">Position</div>
-          <div class="text-xl md:text-2xl font-bold opacity-50">Closing...</div>
-        `;
-        
+        // Optimistic Update only if current pair
+        if (!targetPair || targetPair === document.getElementById("pair").value) {
+            document.getElementById('status-open-position').innerHTML = `
+            <div class="text-xs opacity-70 uppercase tracking-wide">Position</div>
+            <div class="text-xl md:text-2xl font-bold opacity-50">Closing...</div>
+            `;
+            fetchStatus();
+        }
+
         // Parallel fetch
         Promise.all([
-            fetchStatus(),
             new Promise(resolve => setTimeout(async () => {
-                await fetchHistory();
+                if (!targetPair || targetPair === document.getElementById("pair").value) await fetchHistory();
+                if (currentTab === 'positions') await fetchOpenPositions();
                 resolve();
             }, 1000))
         ]);
@@ -1437,8 +1649,10 @@
         const errorMessage = err.response?.data?.detail || err.message;
         showToast(`Close position failed: ${errorMessage}`, true);
       } finally {
-        setLoading(false);
-        btn.innerHTML = originalContent;
+        if(btn) {
+            setLoading(false);
+            btn.innerHTML = originalContent;
+        }
       }
     }
 
@@ -1502,7 +1716,7 @@
       let pnlRange = 0;
       let feesRange = 0;
       let openLongCount = 0;
-      let openShortCount = 0;
+      let openShortsCount = 0;
       
       recentTrades.forEach(t => {
         pnlRange += t.pnl || 0;
@@ -1511,7 +1725,7 @@
         
         if (side.includes('open')) {
             if (side.includes('long') || side.includes('buy')) openLongCount++;
-            if (side.includes('short') || side.includes('sell')) openShortCount++;
+            if (side.includes('short') || side.includes('sell')) openShortsCount++;
         }
       });
 
@@ -1538,7 +1752,7 @@
             </div>
             <div class="px-2 py-1 rounded-lg bg-white/5 border border-white/10 flex items-center gap-2" title="Shorts Opened (${rangeLabel})">
                 <span class="opacity-50 uppercase tracking-wider text-[10px]">Shorts</span>
-                <span class="font-mono font-bold text-red-400">${openShortCount}</span>
+                <span class="font-mono font-bold text-red-400">${openShortsCount}</span>
             </div>
         `;
       }
@@ -1879,6 +2093,8 @@
             promises.push(fetchAiLogs());
         } else if (currentTab === 'running-bots') {
             promises.push(fetchRunningBots());
+        } else if (currentTab === 'positions') {
+            promises.push(fetchOpenPositions());
         }
 
         await Promise.allSettled(promises);
