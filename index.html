@@ -855,6 +855,21 @@
                 `;
             }
 
+            // Stats Footer
+            const statsHtml = `
+                <div class="mt-3 pt-2 border-t border-white/5 flex justify-between items-center text-[9px] opacity-60 uppercase tracking-wide">
+                    <div class="flex gap-2">
+                        <span>Run: <b class="text-white">${formatDuration(bot.runtime)}</b></span>
+                        ${bot.position ? `<span>Hold: <b class="text-white">${formatDuration(bot.holding_time)}</b></span>` : ''}
+                    </div>
+                    <div class="flex gap-2">
+                        <span title="Total Longs">L: <b class="text-white">${bot.stats.longs}</b></span>
+                        <span title="Total Shorts">S: <b class="text-white">${bot.stats.shorts}</b></span>
+                        <span title="Realized PnL">PnL: <b class="${bot.stats.pnl >= 0 ? 'text-green-400' : 'text-red-400'}">${bot.stats.pnl >= 0 ? '+' : ''}$${formatPrice(bot.stats.pnl)}</b></span>
+                    </div>
+                </div>
+            `;
+
             return `
             <div class="glass rounded-xl p-4 border ${statusBg} relative overflow-hidden group transition-all cursor-pointer" onclick="selectPair('${bot.pair}')">
                 <div class="flex justify-between items-start mb-1">
@@ -876,6 +891,7 @@
                 </div>
                 
                 ${contentHtml}
+                ${statsHtml}
             </div>
             `;
         }).join('');
@@ -983,6 +999,18 @@
       if (absVal < 1) return val.toFixed(6).replace(/\.?0+$/, "");
       if (absVal < 10) return val.toFixed(4).replace(/\.?0+$/, "");
       return val.toFixed(2);
+    }
+
+    function formatDuration(ms) {
+      if (!ms || ms < 0) return "0m";
+      const seconds = Math.floor(ms / 1000);
+      const minutes = Math.floor(seconds / 60);
+      const hours = Math.floor(minutes / 60);
+      const days = Math.floor(hours / 24);
+      
+      if (days > 0) return `${days}day ${hours % 24}hr`;
+      if (hours > 0) return `${hours}hr ${minutes % 60}min`;
+      return `${minutes}min;
     }
 
     function setLoading(isLoading, btnId = null) {
