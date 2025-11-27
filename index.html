@@ -57,8 +57,8 @@
 </head>
 <body class="text-white text-sm md:text-base">
   <!-- API Key Modal -->
-  <div id="api-key-modal" class="fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm flex items-center justify-center hidden">
-    <div class="glass p-6 rounded-2xl max-w-md w-full mx-4 shadow-2xl border border-violet-500/30">
+  <div id="api-key-modal" class="fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm flex items-center justify-center hidden p-4">
+    <div class="glass p-6 rounded-2xl w-full max-w-md shadow-2xl border border-violet-500/30">
       <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
         <i class="fas fa-key text-violet-400"></i> Authentication Required
       </h2>
@@ -85,8 +85,8 @@
   </div>
 
   <!-- AI Response Modal -->
-  <div id="ai-response-modal" class="fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm flex items-center justify-center hidden" onclick="closeAiModal(event)">
-    <div class="glass p-6 rounded-2xl max-w-md w-full mx-4 shadow-2xl border border-violet-500/30 relative" onclick="event.stopPropagation()">
+  <div id="ai-response-modal" class="fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm flex items-center justify-center hidden p-4" onclick="closeAiModal(event)">
+    <div class="glass p-6 rounded-2xl w-full max-w-md shadow-2xl border border-violet-500/30 relative max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
       <button onclick="closeAiModal()" class="absolute top-4 right-4 text-white/50 hover:text-white">
         <i class="fas fa-times"></i>
       </button>
@@ -115,8 +115,8 @@
   </div>
 
   <!-- Settings Modal -->
-  <div id="settings-modal" class="fixed inset-0 z-[70] bg-black/80 backdrop-blur-sm flex items-center justify-center hidden" onclick="closeSettingsModal(event)">
-    <div class="glass p-6 rounded-2xl max-w-sm w-full mx-4 shadow-2xl border border-violet-500/30 relative" onclick="event.stopPropagation()">
+  <div id="settings-modal" class="fixed inset-0 z-[70] bg-black/80 backdrop-blur-sm flex items-center justify-center hidden p-4" onclick="closeSettingsModal(event)">
+    <div class="glass p-6 rounded-2xl w-full max-w-sm shadow-2xl border border-violet-500/30 relative" onclick="event.stopPropagation()">
       <button onclick="closeSettingsModal()" class="absolute top-4 right-4 text-white/50 hover:text-white">
         <i class="fas fa-times"></i>
       </button>
@@ -133,15 +133,20 @@
         <p class="text-[10px] opacity-50 mt-2">Select the personality set used for AI analysis across the app.</p>
       </div>
 
-      <button onclick="saveSettings()" id="btn-save-settings" class="w-full py-3 btn-primary rounded-xl font-bold bg-violet-600 hover:bg-violet-700">
-        Save Changes
-      </button>
+      <div class="flex gap-3">
+        <button onclick="loadDefaultSystemSettings()" class="flex-1 py-3 rounded-xl font-bold bg-white/5 hover:bg-white/10 border border-white/10 text-xs uppercase tracking-wide transition-colors">
+            Defaults
+        </button>
+        <button onclick="saveSettings()" id="btn-save-settings" class="flex-[2] py-3 btn-primary rounded-xl font-bold bg-violet-600 hover:bg-violet-700">
+            Save Changes
+        </button>
+      </div>
     </div>
   </div>
 
   <!-- Pair Manager Modal -->
-  <div id="pair-manager-modal" class="fixed inset-0 z-[80] bg-black/90 backdrop-blur-sm flex items-center justify-center hidden" onclick="closePairManager(event)">
-    <div class="glass p-6 rounded-2xl max-w-2xl w-full mx-4 shadow-2xl border border-violet-500/30 relative flex flex-col max-h-[85vh]" onclick="event.stopPropagation()">
+  <div id="pair-manager-modal" class="fixed inset-0 z-[80] bg-black/90 backdrop-blur-sm flex items-center justify-center hidden p-4" onclick="closePairManager(event)">
+    <div class="glass p-6 rounded-2xl w-full max-w-2xl shadow-2xl border border-violet-500/30 relative flex flex-col max-h-[85vh]" onclick="event.stopPropagation()">
       <button onclick="closePairManager()" class="absolute top-4 right-4 text-white/50 hover:text-white">
         <i class="fas fa-times"></i>
       </button>
@@ -180,8 +185,64 @@
     </div>
   </div>
 
+  <!-- System Settings Modal -->
+  <div id="system-settings-modal" class="fixed inset-0 z-[90] bg-black/80 backdrop-blur-sm flex items-center justify-center hidden p-4" onclick="closeSystemSettings(event)">
+    <div class="glass p-6 rounded-2xl w-full max-w-sm shadow-2xl border border-violet-500/30 relative max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+      <button onclick="closeSystemSettings()" class="absolute top-4 right-4 text-white/50 hover:text-white">
+        <i class="fas fa-times"></i>
+      </button>
+      <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
+        <i class="fas fa-sliders-h text-violet-400"></i> System Parameters
+      </h2>
+      
+      <div class="space-y-4 mb-6">
+        <!-- AI Temperature -->
+        <div>
+            <label class="block text-[10px] font-bold uppercase tracking-wide opacity-70 mb-1">AI Creativity (Temp)</label>
+            <input type="number" id="sys-temp" min="0" max="2.0" step="0.1" class="w-full px-3 py-2 rounded-lg bg-white/10 border border-white/15 focus:border-violet-500 focus:outline-none text-sm font-mono text-violet-300">
+            <p class="text-[9px] opacity-40 mt-1">Higher values make AI more creative/random. Lower values make it deterministic.</p>
+        </div>
+
+        <!-- AI Interval -->
+        <div>
+            <label class="block text-[10px] font-bold uppercase tracking-wide opacity-70 mb-1">Analysis Freq (Min)</label>
+            <input type="number" id="sys-interval" min="0.5" step="0.1" class="w-full px-3 py-2 rounded-lg bg-white/10 border border-white/15 focus:border-violet-500 focus:outline-none text-sm font-mono text-violet-300">
+            <p class="text-[9px] opacity-40 mt-1">How often the bot analyzes the market for new signals.</p>
+        </div>
+
+        <!-- Cooldown -->
+        <div>
+            <label class="block text-[10px] font-bold uppercase tracking-wide opacity-70 mb-1">Cooldown (Min)</label>
+            <input type="number" id="sys-cooldown" min="0.5" step="0.1" class="w-full px-3 py-2 rounded-lg bg-white/10 border border-white/15 focus:border-violet-500 focus:outline-none text-sm font-mono text-violet-300">
+            <p class="text-[9px] opacity-40 mt-1">Wait time after closing a position before trading again.</p>
+        </div>
+
+        <!-- AI Flip Interval -->
+        <div>
+            <label class="block text-[10px] font-bold uppercase tracking-wide opacity-70 mb-1">Flip Check Freq (Min)</label>
+            <input type="number" id="sys-flip" min="1" step="0.1" class="w-full px-3 py-2 rounded-lg bg-white/10 border border-white/15 focus:border-violet-500 focus:outline-none text-sm font-mono text-violet-300">
+            <p class="text-[9px] opacity-40 mt-1">How often to check for reversal signals while in a position.</p>
+        </div>
+      </div>
+
+      <div class="flex gap-3">
+        <button onclick="loadDefaultSystemSettings()" class="flex-1 py-3 rounded-xl font-bold bg-white/5 hover:bg-white/10 border border-white/10 text-xs uppercase tracking-wide transition-colors">
+            Defaults
+        </button>
+        <button onclick="saveSystemSettings()" id="btn-save-sys" class="flex-[2] py-3 btn-primary rounded-xl font-bold bg-violet-600 hover:bg-violet-700">
+            Update Parameters
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating Settings Button -->
+  <button onclick="openSystemSettings()" class="fixed bottom-6 right-6 z-40 w-14 h-14 rounded-full bg-violet-600 hover:bg-violet-500 shadow-[0_0_15px_rgba(124,58,237,0.5)] flex items-center justify-center transition-all hover:scale-110 group border border-white/10">
+    <i class="fas fa-sliders-h text-white text-xl group-hover:rotate-180 transition-transform duration-500"></i>
+  </button>
+
   <!-- Toast Notification -->
-  <div id="toast" class="fixed bottom-5 right-5 z-50 bg-green-600 text-white py-2 px-4 rounded-lg shadow-lg hidden">
+  <div id="toast" class="fixed bottom-24 right-6 z-50 bg-green-600 text-white py-2 px-4 rounded-lg shadow-lg hidden">
     <p id="toast-message"></p>
   </div>
 
@@ -215,28 +276,40 @@
           <!-- AI Control Center -->
           <div class="mb-4 p-2 rounded-xl bg-white/5 border border-white/10">
              <!-- Header: Status & Settings -->
-             <div class="flex items-center justify-between mb-2">
-                 <div class="flex items-center gap-2 overflow-hidden w-full">
-                    <div id="bot-indicator" class="w-2.5 h-2.5 rounded-full bg-gray-500 transition-colors flex-shrink-0 mt-0.5"></div>
+             <div class="flex items-start justify-between mb-2">
+                 <div class="flex gap-2 w-full">
+                    <div id="bot-indicator" class="w-2.5 h-2.5 rounded-full bg-gray-500 transition-colors flex-shrink-0 mt-1.5"></div>
                     <div class="flex flex-col min-w-0 w-full">
-                        <div class="flex items-center gap-2">
-                            <span class="text-xs font-bold uppercase tracking-wide whitespace-nowrap">AI</span>
-                            <!-- Settings (Inline) -->
-                            <button onclick="openSettingsModal()" class="w-5 h-5 flex items-center justify-center rounded hover:bg-white/20 transition-colors" title="Prompt Settings">
-                                <i class="fas fa-cog text-[20px] text-white/70"></i>
-                            </button>
-                            <span id="persona-badge" class="text-[9px] font-bold uppercase tracking-wider bg-violet-500/20 px-1.5 py-0.5 rounded border border-violet-500/30 text-violet-200 truncate opacity-0 transition-opacity">--</span>
+                        <div class="flex flex-wrap items-center gap-y-2 gap-x-3">
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-bold uppercase tracking-wide whitespace-nowrap">AI</span>
+                                <!-- Settings (Inline) -->
+                                <button onclick="openSettingsModal()" class="w-5 h-5 flex items-center justify-center rounded hover:bg-white/20 transition-colors" title="Prompt Settings">
+                                    <i class="fas fa-cog text-[20px] text-white/70"></i>
+                                </button>
+                                <span id="persona-badge" class="text-[9px] font-bold uppercase tracking-wider bg-violet-500/20 px-1.5 py-0.5 rounded border border-violet-500/30 text-violet-200 truncate max-w-[120px] opacity-0 transition-opacity">--</span>
+                            </div>
                             
-                            <!-- Counter Trade Switch -->
-                            <div class="flex items-center gap-1.5 ml-2 cursor-pointer group" onclick="toggleCounterTrade()" title="Counter Trade Mode (Invert AI Signals)">
-                                <div id="counter-trade-switch" class="w-7 h-3.5 rounded-full bg-white/10 relative transition-colors border border-white/10">
-                                    <div id="counter-trade-knob" class="absolute left-0.5 top-px w-2.5 h-2.5 rounded-full bg-white/40 transition-all"></div>
+                            <div class="flex items-center gap-3 ml-auto sm:ml-0">
+                                <!-- Counter Trade Switch -->
+                                <div class="flex items-center gap-1.5 cursor-pointer group" onclick="toggleCounterTrade()" title="Counter Trade Mode (Invert AI Signals)">
+                                    <div id="counter-trade-switch" class="w-7 h-3.5 rounded-full bg-white/10 relative transition-colors border border-white/10">
+                                        <div id="counter-trade-knob" class="absolute left-0.5 top-px w-2.5 h-2.5 rounded-full bg-white/40 transition-all"></div>
+                                    </div>
+                                    <span class="text-[9px] uppercase font-bold opacity-40 transition-colors" id="counter-trade-label">Norm</span>
                                 </div>
-                                <span class="text-[9px] uppercase font-bold opacity-40 transition-colors" id="counter-trade-label">Norm</span>
+
+                                <!-- AI Flip Switch -->
+                                <div class="flex items-center gap-1.5 cursor-pointer group" onclick="toggleAiFlip()" title="AI Flip Mode (Close position on strong opposing signal)">
+                                    <div id="aiflip-switch" class="w-7 h-3.5 rounded-full bg-white/10 relative transition-colors border border-white/10">
+                                        <div id="aiflip-knob" class="absolute left-0.5 top-px w-2.5 h-2.5 rounded-full bg-white/40 transition-all"></div>
+                                    </div>
+                                    <span class="text-[9px] uppercase font-bold opacity-40 transition-colors" id="aiflip-label">Flip</span>
+                                </div>
                             </div>
                         </div>
-                        <div class="flex justify-between items-center mt-0.5 pr-1">
-                             <div id="bot-status-text" class="text-[12px] opacity-50 whitespace-nowrap leading-none">System Idle</div>
+                        <div class="flex flex-wrap justify-between items-center mt-2 pr-1 gap-y-1">
+                             <div id="bot-status-text" class="text-[12px] opacity-50 whitespace-nowrap leading-none mr-2">System Idle</div>
                              <div id="market-changes" class="flex gap-2 text-[11px] font-mono opacity-70"></div>
                         </div>
                     </div>
@@ -563,6 +636,7 @@
     let currentPosSort = { field: 'open_time', dir: 'desc' }; // Sort state for positions
     let lastAiSignal = null; // Store last AI signal for modal execution
     let counterTradeActive = false; // New state
+    let aiFlipActive = false; // New state for AI Flip
     
     // Debounce utility
     function debounce(func, wait) {
@@ -757,6 +831,40 @@
         }
     }
 
+    // --- AI Flip Logic ---
+    function toggleAiFlip() {
+        aiFlipActive = !aiFlipActive;
+        updateAiFlipUI();
+    }
+
+    function updateAiFlipUI() {
+        const switchEl = document.getElementById('aiflip-switch');
+        const knob = document.getElementById('aiflip-knob');
+        const label = document.getElementById('aiflip-label');
+        
+        if (aiFlipActive) {
+            switchEl.classList.remove('bg-white/10', 'border-white/10');
+            switchEl.classList.add('bg-blue-500/20', 'border-blue-500/50');
+            
+            knob.classList.add('translate-x-3');
+            knob.classList.remove('bg-white/40');
+            knob.classList.add('bg-blue-400');
+            
+            label.classList.remove('opacity-40');
+            label.classList.add('text-blue-400', 'opacity-100');
+        } else {
+            switchEl.classList.add('bg-white/10', 'border-white/10');
+            switchEl.classList.remove('bg-blue-500/20', 'border-blue-500/50');
+            
+            knob.classList.remove('translate-x-3');
+            knob.classList.add('bg-white/40');
+            knob.classList.remove('bg-blue-400');
+            
+            label.classList.add('opacity-40');
+            label.classList.remove('text-blue-400', 'opacity-100');
+        }
+    }
+
     // --- Tab Logic ---
     function switchTab(tab) {
         currentTab = tab;
@@ -846,17 +954,17 @@
             <div class="w-px h-6 bg-white/10"></div>
             <div class="flex flex-col items-center">
                 <span class="text-[9px] uppercase tracking-wider opacity-50">Closed</span>
-                <span class="font-mono font-bold text-sm ${closedPnl >= 0 ? 'text-green-400' : 'text-red-400'}">${formatUSD(closedPnl, true)}</span>
+                <span class="font-mono font-bold text-sm ${closedPnl >= 0 ? 'text-green-400' : 'text-red-400'}">${formatUSD(closedPnl.toFixed(2), true)}</span>
             </div>
             <div class="w-px h-6 bg-white/10"></div>
             <div class="flex flex-col items-center">
                 <span class="text-[9px] uppercase tracking-wider opacity-50">Open</span>
-                <span class="font-mono font-bold text-sm ${openPnl >= 0 ? 'text-green-400' : 'text-red-400'}">${formatUSD(openPnl, true)}</span>
+                <span class="font-mono font-bold text-sm ${openPnl >= 0 ? 'text-green-400' : 'text-red-400'}">${formatUSD(openPnl.toFixed(2), true)}</span>
             </div>
             <div class="w-px h-6 bg-white/10"></div>
             <div class="flex flex-col items-center">
                 <span class="text-[9px] uppercase tracking-wider opacity-50">Net Profit</span>
-                <span class="font-mono font-bold text-sm ${totalProfit >= 0 ? 'text-green-400' : 'text-red-400'}">${formatUSD(totalProfit, true)}</span>
+                <span class="font-mono font-bold text-sm ${totalProfit >= 0 ? 'text-green-400' : 'text-red-400'}">${formatUSD(totalProfit.toFixed(2), true)}</span>
             </div>
             <div class="w-px h-6 bg-white/10"></div>
             <div class="flex flex-col items-center">
@@ -888,6 +996,11 @@
             const isCounter = bot.counter_trade === true;
             const counterBadge = isCounter 
                 ? `<span class="ml-2 text-[8px] font-bold text-amber-400 bg-amber-400/10 px-1.5 py-px rounded border border-amber-400/20 tracking-wider">COUNTER</span>` 
+                : ``;
+            
+            const isAiFlip = bot.aiflip === true;
+            const aiFlipBadge = isAiFlip
+                ? `<span class="ml-1 text-[8px] font-bold text-blue-400 bg-blue-400/10 px-1.5 py-px rounded border border-blue-400/20 tracking-wider">FLIP</span>`
                 : ``;
 
             // TP Display
@@ -982,6 +1095,7 @@
                             <div class="flex items-center mt-0.5">
                                 <div class="text-[10px] opacity-60 uppercase tracking-wider truncate">${bot.persona_set.replace(/_/g, ' ')}</div>
                                 ${counterBadge}
+                                ${aiFlipBadge}
                             </div>
                         </div>
                     </div>
@@ -2209,6 +2323,10 @@
                     counterTradeActive = data.counter_trade;
                     updateCounterTradeUI();
                 }
+                if (aiFlipActive !== data.aiflip) {
+                    aiFlipActive = data.aiflip;
+                    updateAiFlipUI();
+                }
             }
             
             // Update badge based on preference or running state
@@ -2275,13 +2393,14 @@
             trade_size_usd: parseFloat(document.getElementById("size_usd").value) * parseFloat(document.getElementById("leverage").value),
             take_profit: document.getElementById("tp_price").value ? parseFloat(document.getElementById("tp_price").value) : null,
             persona_set: currentPersona,
-            counter_trade: counterTradeActive // Send counter trade flag
+            counter_trade: counterTradeActive, // Send counter trade flag
+            aiflip: aiFlipActive // Send AI Flip flag
           };
 
         try {
             const res = await axios.post(`${getApiBase()}/bot/configure`, payload);
             if (res.data.status === "started") {
-                showToast(`Auto Bot Started (${currentPersona}${counterTradeActive ? ', Counter' : ''})`);
+                showToast(`Auto Bot Started (${currentPersona}${counterTradeActive ? ', Counter' : ''}${aiFlipActive ? ', Flip' : ''})`);
                 isBotRunning = true;
             } else {
                 showToast("Auto Bot Stopped");
@@ -2321,7 +2440,7 @@
         const badge = document.getElementById('persona-badge');
         if(badge) {
             const displayName = name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-            badge.textContent = "AI Theme: " + displayName;
+            badge.textContent = "AI: " + displayName;
             badge.classList.remove('opacity-0');
         }
     }
@@ -2362,6 +2481,14 @@
         setTimeout(() => modal.classList.add('hidden'), 300);
     }
 
+    function loadDefaultSystemSettings() {
+        document.getElementById('sys-temp').value = 0.3;
+        document.getElementById('sys-interval').value = 10; // 10 minutes
+        document.getElementById('sys-cooldown').value = 15; // 15 minutes
+        document.getElementById('sys-flip').value = 60;     // 60 minutes
+        showToast("Loaded defaults. Click Update to save.");
+    }
+
     async function saveSettings() {
         const btn = document.getElementById('btn-save-settings');
         const originalText = btn.textContent;
@@ -2391,6 +2518,71 @@
         } catch (err) {
             showToast("Failed to save settings", true);
             console.error(err);
+        } finally {
+            btn.disabled = false;
+            btn.textContent = originalText;
+        }
+    }
+
+    // --- System Settings Logic ---
+    async function openSystemSettings() {
+        const modal = document.getElementById('system-settings-modal');
+        modal.classList.remove('hidden');
+        setTimeout(() => modal.classList.add('show'), 10);
+        
+        try {
+            const res = await axios.get(`${getApiBase()}/settings/system`);
+            const conf = res.data;
+            
+            document.getElementById('sys-temp').value = conf.ai_temperature;
+            
+            // Convert seconds to minutes for display
+            document.getElementById('sys-interval').value = (conf.ai_interval / 60).toFixed(1).replace(/\.0$/, '');
+            document.getElementById('sys-cooldown').value = (conf.cooldown_interval / 60).toFixed(1).replace(/\.0$/, '');
+            document.getElementById('sys-flip').value = (conf.aiflip_interval / 60).toFixed(1).replace(/\.0$/, '');
+            
+        } catch (err) {
+            console.error("Failed to fetch system settings", err);
+            showToast("Failed to load system settings", true);
+        }
+    }
+
+    function closeSystemSettings(event) {
+        if (event && event.target !== event.currentTarget) return;
+        const modal = document.getElementById('system-settings-modal');
+        modal.classList.remove('show');
+        setTimeout(() => modal.classList.add('hidden'), 300);
+    }
+
+    function loadDefaultSystemSettings() {
+        document.getElementById('sys-temp').value = 0.3;
+        document.getElementById('sys-interval').value = 10; // 10 minutes
+        document.getElementById('sys-cooldown').value = 15; // 15 minutes
+        document.getElementById('sys-flip').value = 60;     // 60 minutes
+        showToast("Loaded defaults. Click Update to save.");
+    }
+
+    async function saveSystemSettings() {
+        const btn = document.getElementById('btn-save-sys');
+        const originalText = btn.textContent;
+        btn.innerHTML = `<i class="fas fa-circle-notch spin"></i>`;
+        btn.disabled = true;
+        
+        // Convert minutes back to seconds
+        const payload = {
+            ai_temperature: parseFloat(document.getElementById('sys-temp').value),
+            ai_interval: Math.round(parseFloat(document.getElementById('sys-interval').value) * 60),
+            cooldown_interval: Math.round(parseFloat(document.getElementById('sys-cooldown').value) * 60),
+            aiflip_interval: Math.round(parseFloat(document.getElementById('sys-flip').value) * 60)
+        };
+        
+        try {
+            await axios.post(`${getApiBase()}/settings/system`, payload);
+            showToast("System parameters updated");
+            closeSystemSettings();
+        } catch (err) {
+            console.error("Failed to save system settings", err);
+            showToast("Failed to save parameters", true);
         } finally {
             btn.disabled = false;
             btn.textContent = originalText;
