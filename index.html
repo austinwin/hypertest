@@ -1014,11 +1014,13 @@
         const totalRunning = runningBots.length;
         let closedPnl = 0;
         let openPnl = 0;
+        let totalFees = 0;
         let totalLongs = 0;
         let totalShorts = 0;
 
         runningBots.forEach(b => {
             closedPnl += (b.stats?.pnl || 0);
+            totalFees += (b.stats?.fee || 0);
             if (b.position) {
                 openPnl += (b.position.unrealized_pnl || 0);
             }
@@ -1026,7 +1028,7 @@
             totalShorts += (b.stats?.shorts || 0);
         });
 
-        const totalProfit = closedPnl + openPnl;
+        const totalProfit = closedPnl + openPnl - totalFees;
 
         statsContainer.innerHTML = `
             <div class="flex flex-col items-center">
@@ -1042,6 +1044,11 @@
             <div class="flex flex-col items-center">
                 <span class="text-[9px] uppercase tracking-wider opacity-50">Open</span>
                 <span class="font-mono font-bold text-[11px] ${openPnl >= 0 ? 'text-green-400' : 'text-red-400'}">${formatUSD(openPnl.toFixed(2), true)}</span>
+            </div>
+            <div class="w-px h-6 bg-white/10"></div>
+            <div class="flex flex-col items-center">
+                <span class="text-[9px] uppercase tracking-wider opacity-50">Fees</span>
+                <span class="font-mono font-bold text-[11px] text-orange-300">${formatUSD(totalFees.toFixed(2))}</span>
             </div>
             <div class="w-px h-6 bg-white/10"></div>
             <div class="flex flex-col items-center">
@@ -1160,7 +1167,8 @@
                     <div class="flex gap-2">
                         <span title="Total Longs">L: <b class="text-white">${bot.stats.longs}</b></span>
                         <span title="Total Shorts">S: <b class="text-white">${bot.stats.shorts}</b></span>
-                        <span title="Realized PnL">PnL: <b class="${bot.stats.pnl >= 0 ? 'text-green-400' : 'text-red-400'}">${formatUSD(bot.stats.pnl.toFixed(5), true)}</b></span>
+                        <span title="Realized PnL">PnL: <b class="${bot.stats.pnl >= 0 ? 'text-green-400' : 'text-red-400'}">${formatUSD(bot.stats.pnl.toFixed(4), true)}</b></span>
+                        <span title="Total Fees">F: <b class="text-orange-300">${formatUSD((bot.stats.fee || 0).toFixed(4))}</b></span>
                     </div>
                 </div>
             `;
