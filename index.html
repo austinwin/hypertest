@@ -420,24 +420,24 @@
                 <!-- Switches Row -->
                 <div class="grid grid-cols-3 gap-2 bg-black/20 p-2 rounded-xl border border-white/5">
                     <!-- Counter Trade Switch -->
-                    <div class="flex flex-col items-center gap-1.5 cursor-pointer group p-1 rounded hover:bg-white/5 transition-colors" onclick="toggleCounterTrade()" title="Counter Trade Mode">
-                        <div id="counter-trade-switch" class="w-9 h-5 rounded-full bg-white/10 relative transition-colors border border-white/10">
+                    <div class="flex flex-col items-center gap-1.5 cursor-pointer group p-1 rounded transition-colors" onclick="toggleCounterTrade()" title="Counter Trade Mode">
+                        <div id="counter-trade-switch" class="w-9 h-5 rounded-full bg-white/10 relative transition-colors border border-white/10 hover:bg-white/5">
                             <div id="counter-trade-knob" class="absolute left-0.5 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white/40 transition-all shadow-sm"></div>
                         </div>
                         <span class="text-[9px] uppercase font-bold opacity-40 transition-colors" id="counter-trade-label">Follow AI</span>
                     </div>
 
                     <!-- AI Flip Switch -->
-                    <div class="flex flex-col items-center gap-1.5 cursor-pointer group p-1 rounded hover:bg-white/5 transition-colors" onclick="toggleAiFlip()" title="AI Flip Mode">
-                        <div id="aiflip-switch" class="w-9 h-5 rounded-full bg-white/10 relative transition-colors border border-white/10">
+                    <div class="flex flex-col items-center gap-1.5 cursor-pointer group p-1 rounded transition-colors" onclick="toggleAiFlip()" title="AI Flip Mode">
+                        <div id="aiflip-switch" class="w-9 h-5 rounded-full bg-white/10 relative transition-colors border border-white/10 hover:bg-white/5">
                             <div id="aiflip-knob" class="absolute left-0.5 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white/40 transition-all shadow-sm"></div>
                         </div>
                         <span class="text-[9px] uppercase font-bold opacity-40 transition-colors" id="aiflip-label">Revert Sig</span>
                     </div>
 
                     <!-- Auto Config Switch -->
-                    <div class="flex flex-col items-center gap-1.5 cursor-pointer group p-1 rounded hover:bg-white/5 transition-colors" onclick="toggleAutoConfig()" title="Auto Config Mode">
-                        <div id="autoconfig-switch" class="w-9 h-5 rounded-full bg-white/10 relative transition-colors border border-white/10">
+                    <div class="flex flex-col items-center gap-1.5 cursor-pointer group p-1 rounded transition-colors" onclick="toggleAutoConfig()" title="Auto Config Mode">
+                        <div id="autoconfig-switch" class="w-9 h-5 rounded-full bg-white/10 relative transition-colors border border-white/10 hover:bg-white/5">
                             <div id="autoconfig-knob" class="absolute left-0.5 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white/40 transition-all shadow-sm"></div>
                         </div>
                         <span class="text-[9px] uppercase font-bold opacity-40 transition-colors" id="autoconfig-label">Auto Config</span>
@@ -2582,7 +2582,12 @@
       document.getElementById('status-open-orders').innerHTML = loadingSkeleton;
       
       // Note: We don't clear margin/account value as those are global
-      
+      counterTradeActive = false;
+      updateCounterTradeUI();
+      aiFlipActive = false;
+      updateAiFlipUI();
+      autoConfigActive = false;
+      updateAutoConfigUI();
       debouncedRefresh();
     });
 
@@ -2635,6 +2640,7 @@
                 }
             }else {
                 // Reset defaults if bot is not running
+                /*
                 if (aiFlipActive) {
                     aiFlipActive = false;
                     updateAiFlipUI();
@@ -2646,7 +2652,8 @@
                 if (autoConfigActive) {
                     autoConfigActive = false;
                     updateAutoConfigUI();
-                }
+                }*/
+               console.log("Bot is not running, retaining toggle states.");
             }
             
             // Update badge based on preference or running state
@@ -2953,18 +2960,26 @@
     let battleChartInstance = null;
     let battleChartTimer = null;
 
-    async function openBattleManager() {
-      const modal = document.getElementById('battle-modal');
-      modal.classList.remove('hidden');
-      setTimeout(() => modal.classList.add('show'), 10);
-      await fetchBattles();
-      await populateBattlePairs();
-      
-      // Start chart refresh loop
+async function openBattleManager() {
+  const modal = document.getElementById('battle-modal');
+  modal.classList.remove('hidden');
+  setTimeout(() => {
+    modal.classList.add('show');
+    // Wait for transition (300ms), then render chart
+    setTimeout(() => {
       viewBattleChart();
-      if (battleChartTimer) clearInterval(battleChartTimer);
-      battleChartTimer = setInterval(viewBattleChart, 60000); // 1 minute refresh
-    }
+    }, 1);
+  }, 1);
+
+  await fetchBattles();
+  await populateBattlePairs();
+
+  // Remove immediate chart render here!
+  // viewBattleChart(); <-- delete this line
+
+  if (battleChartTimer) clearInterval(battleChartTimer);
+  battleChartTimer = setInterval(viewBattleChart, 60000); // 1 minute refresh
+}
 
     function closeBattleManager(event) {
       if (event && event.target !== event.currentTarget) return;
