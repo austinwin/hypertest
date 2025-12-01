@@ -1484,7 +1484,8 @@ select option {
         const payload = {
             action: "stop",
             pair: pair,
-            leverage: 1, trade_size_usd: 0, persona_set: "concise", counter_trade: false, aiflip: false
+            leverage: 1, trade_size_usd: 0, persona_set: "concise", counter_trade: false, aiflip: false, auto_config: false, dynamic_tp: false
+
         };
 
         try {
@@ -2733,6 +2734,10 @@ select option {
                 if (autoConfigActive !== data.auto_config) {
                     autoConfigActive = data.auto_config;
                     updateAutoConfigUI();
+                }
+                if (dynamicTpActive !== data.dynamic_tp) {
+                    dynamicTpActive = data.dynamic_tp;
+                    updateDynamicTpUI();
                 }
             }else {
                 // Reset defaults if bot is not running
