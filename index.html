@@ -51,6 +51,15 @@
       opacity: 1;
     }
 
+    /* Switches Info Modal */
+    #switches-info-modal {
+      transition: opacity 0.3s ease-in-out;
+      opacity: 0;
+    }
+    #switches-info-modal.show {
+      opacity: 1;
+    }
+
     /* Battle Modal */
     #battle-modal {
       transition: opacity 0.3s ease-in-out;
@@ -370,6 +379,25 @@ select option {
     </div>
   </div>
 
+  <!-- Switches Info Modal -->
+  <div id="switches-info-modal" class="fixed inset-0 z-[95] bg-black/80 backdrop-blur-sm flex items-center justify-center hidden p-4" onclick="closeSwitchesInfo(event)">
+    <div class="glass p-6 rounded-2xl w-full max-w-sm shadow-2xl border border-violet-500/30 relative" onclick="event.stopPropagation()">
+      <button onclick="closeSwitchesInfo()" class="absolute top-4 right-4 text-white/50 hover:text-white">
+        <i class="fas fa-times" style="position: relative; top: -2px; left: -2px;"></i>
+      </button>
+      <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+        <i class="fas fa-info-circle text-violet-400"></i> Control Switches
+      </h2>
+      <div class="space-y-3 text-sm opacity-80">
+        <div><span class="font-bold text-amber-400">Counter Trade:</span> Reverses AI signals to trade against the predicted trend.</div>
+        <div><span class="font-bold text-blue-400">AI Flip:</span> Automatically reverses position if AI detects a strong trend change.</div>
+        <div><span class="font-bold text-purple-400">Dyn Config:</span> Allows AI to dynamically adjust leverage and trade size based on confidence.</div>
+        <div><span class="font-bold text-cyan-400">Dyn TP:</span> AI adjusts Take Profit targets based on market volatility.</div>
+        <div><span class="font-bold text-rose-400">Hard SL:</span> Enforces a strict stop loss order on the exchange for safety.</div>
+      </div>
+    </div>
+  </div>
+
   <!-- Floating Battle Button -->
   <button onclick="openBattleManager()" class="fixed bottom-6 right-24 z-40 w-14 h-14 rounded-full bg-amber-500 hover:bg-amber-400 shadow-[0_0_12px_rgba(245,158,11,0.4)] flex items-center justify-center transition-all hover:scale-110 group border border-white/10">
     <i class="fas fa-trophy text-white text-xl transition-transform duration-500"></i>
@@ -438,46 +466,51 @@ select option {
                 <div id="market-changes" class="flex justify-between items-center gap-2 text-xs font-mono opacity-80 bg-black/20 p-2 rounded-lg border border-white/5 min-h-[32px]"></div>
 
                 <!-- Switches Row -->
-                <div class="grid grid-cols-5 gap-2 bg-black/20 p-2 rounded-xl border border-white/5">
-                    <!-- Counter Trade Switch -->
-                    <div class="flex flex-col items-center gap-1.5 cursor-pointer group p-1 rounded transition-colors" onclick="toggleCounterTrade()" title="Counter Trade Mode">
-                        <div id="counter-trade-switch" class="w-9 h-5 rounded-full bg-white/10 relative transition-colors border border-white/10 hover:bg-white/5">
-                            <div id="counter-trade-knob" class="absolute left-0.5 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white/40 transition-all shadow-sm"></div>
+                <div class="relative">
+                    <div class="grid grid-cols-5 gap-2 bg-black/20 p-2 rounded-xl border border-white/5">
+                        <!-- Counter Trade Switch -->
+                        <div class="flex flex-col items-center gap-1.5 cursor-pointer group p-1 rounded transition-colors" onclick="toggleCounterTrade()" title="Counter Trade Mode">
+                            <div id="counter-trade-switch" class="w-9 h-5 rounded-full bg-white/10 relative transition-colors border border-white/10 hover:bg-white/5">
+                                <div id="counter-trade-knob" class="absolute left-0.5 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white/40 transition-all shadow-sm"></div>
+                            </div>
+                            <span class="text-[9px] uppercase font-bold opacity-40 transition-colors" id="counter-trade-label">Follow AI</span>
                         </div>
-                        <span class="text-[9px] uppercase font-bold opacity-40 transition-colors" id="counter-trade-label">Follow AI</span>
-                    </div>
 
-                    <!-- AI Flip Switch -->
-                    <div class="flex flex-col items-center gap-1.5 cursor-pointer group p-1 rounded transition-colors" onclick="toggleAiFlip()" title="AI Flip Mode">
-                        <div id="aiflip-switch" class="w-9 h-5 rounded-full bg-white/10 relative transition-colors border border-white/10 hover:bg-white/5">
-                            <div id="aiflip-knob" class="absolute left-0.5 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white/40 transition-all shadow-sm"></div>
+                        <!-- AI Flip Switch -->
+                        <div class="flex flex-col items-center gap-1.5 cursor-pointer group p-1 rounded transition-colors" onclick="toggleAiFlip()" title="AI Flip Mode">
+                            <div id="aiflip-switch" class="w-9 h-5 rounded-full bg-white/10 relative transition-colors border border-white/10 hover:bg-white/5">
+                                <div id="aiflip-knob" class="absolute left-0.5 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white/40 transition-all shadow-sm"></div>
+                            </div>
+                            <span class="text-[9px] uppercase font-bold opacity-40 transition-colors" id="aiflip-label">Revert Sig</span>
                         </div>
-                        <span class="text-[9px] uppercase font-bold opacity-40 transition-colors" id="aiflip-label">Revert Sig</span>
-                    </div>
 
-                    <!-- Auto Config Switch -->
-                    <div class="flex flex-col items-center gap-1.5 cursor-pointer group p-1 rounded transition-colors" onclick="toggleAutoConfig()" title="Dync Config Mode">
-                        <div id="autoconfig-switch" class="w-9 h-5 rounded-full bg-white/10 relative transition-colors border border-white/10 hover:bg-white/5">
-                            <div id="autoconfig-knob" class="absolute left-0.5 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white/40 transition-all shadow-sm"></div>
+                        <!-- Auto Config Switch -->
+                        <div class="flex flex-col items-center gap-1.5 cursor-pointer group p-1 rounded transition-colors" onclick="toggleAutoConfig()" title="Dync Config Mode">
+                            <div id="autoconfig-switch" class="w-9 h-5 rounded-full bg-white/10 relative transition-colors border border-white/10 hover:bg-white/5">
+                                <div id="autoconfig-knob" class="absolute left-0.5 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white/40 transition-all shadow-sm"></div>
+                            </div>
+                            <span class="text-[9px] uppercase font-bold opacity-40 transition-colors" id="autoconfig-label">Dyn Config</span>
                         </div>
-                        <span class="text-[9px] uppercase font-bold opacity-40 transition-colors" id="autoconfig-label">Dyn Config</span>
-                    </div>
 
-                    <!-- Dynamic TP Switch -->
-                    <div class="flex flex-col items-center gap-1.5 cursor-pointer group p-1 rounded transition-colors" onclick="toggleDynamicTp()" title="Dynamic TP Mode">
-                        <div id="dynamictp-switch" class="w-9 h-5 rounded-full bg-white/10 relative transition-colors border border-white/10 hover:bg-white/5">
-                            <div id="dynamictp-knob" class="absolute left-0.5 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white/40 transition-all shadow-sm"></div>
+                        <!-- Dynamic TP Switch -->
+                        <div class="flex flex-col items-center gap-1.5 cursor-pointer group p-1 rounded transition-colors" onclick="toggleDynamicTp()" title="Dynamic TP Mode">
+                            <div id="dynamictp-switch" class="w-9 h-5 rounded-full bg-white/10 relative transition-colors border border-white/10 hover:bg-white/5">
+                                <div id="dynamictp-knob" class="absolute left-0.5 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white/40 transition-all shadow-sm"></div>
+                            </div>
+                            <span class="text-[9px] uppercase font-bold opacity-40 transition-colors" id="dynamictp-label">Dyn TP</span>
                         </div>
-                        <span class="text-[9px] uppercase font-bold opacity-40 transition-colors" id="dynamictp-label">Dyn TP</span>
-                    </div>
 
-                    <!-- Hard Stop Loss Switch -->
-                    <div class="flex flex-col items-center gap-1.5 cursor-pointer group p-1 rounded transition-colors" onclick="toggleHardStopLoss()" title="Hard Stop Loss Mode">
-                        <div id="hardstoploss-switch" class="w-9 h-5 rounded-full bg-white/10 relative transition-colors border border-white/10 hover:bg-white/5">
-                            <div id="hardstoploss-knob" class="absolute left-0.5 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white/40 transition-all shadow-sm"></div>
+                        <!-- Hard Stop Loss Switch -->
+                        <div class="flex flex-col items-center gap-1.5 cursor-pointer group p-1 rounded transition-colors" onclick="toggleHardStopLoss()" title="Hard Stop Loss Mode">
+                            <div id="hardstoploss-switch" class="w-9 h-5 rounded-full bg-white/10 relative transition-colors border border-white/10 hover:bg-white/5">
+                                <div id="hardstoploss-knob" class="absolute left-0.5 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white/40 transition-all shadow-sm"></div>
+                            </div>
+                            <span class="text-[9px] uppercase font-bold opacity-40 transition-colors" id="hardstoploss-label">Hard SL</span>
                         </div>
-                        <span class="text-[9px] uppercase font-bold opacity-40 transition-colors" id="hardstoploss-label">Hard SL</span>
                     </div>
+                    <button onclick="openSwitchesInfo()" class="absolute -bottom-2 -right-2 w-5 h-5 rounded-full bg-gray-800 hover:bg-gray-700 border border-white/20 flex items-center justify-center shadow-lg z-10">
+                        <i class="fas fa-info text-[10px] text-white/70"></i>
+                    </button>
                 </div>
              </div>
 
@@ -569,12 +602,17 @@ select option {
             </div>
           </div>
 
-          <div class="grid grid-cols-2 gap-3">
-            <button id="btn-long" onclick="executeTrade('LONG')" class="py-3 btn-primary rounded-xl font-semibold text-base bg-gradient-to-r from-green-600 to-emerald-700 hover:from-green-700 hover:to-emerald-800 flex items-center justify-center gap-2">
+          <div class="flex gap-3">
+            <button id="btn-long" onclick="executeTrade('LONG')" disabled class="flex-1 py-3 btn-primary rounded-xl font-semibold text-base bg-gradient-to-r from-green-600 to-emerald-700 hover:from-green-700 hover:to-emerald-800 flex items-center justify-center gap-2 disabled:opacity-25 disabled:cursor-not-allowed disabled:grayscale">
               <i class="fas fa-arrow-up"></i><span>Long</span>
             </button>
-            <button id="btn-short" onclick="executeTrade('SHORT')" class="py-3 btn-primary rounded-xl font-semibold text-base bg-gradient-to-r from-red-600 to-rose-700 hover:from-red-700 hover:to-rose-800 flex items-center justify-center gap-2">
+            <button id="btn-short" onclick="executeTrade('SHORT')" disabled class="flex-1 py-3 btn-primary rounded-xl font-semibold text-base bg-gradient-to-r from-red-600 to-rose-700 hover:from-red-700 hover:to-rose-800 flex items-center justify-center gap-2 disabled:opacity-25 disabled:cursor-not-allowed disabled:grayscale">
               <i class="fas fa-arrow-down"></i><span>Short</span>
+            </button>
+            
+            <button id="btn-manual-toggle" onclick="toggleManualTradeButtons()" class="w-12 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 flex flex-col items-center justify-center transition-colors group">
+                <i id="manual-lock-icon" class="fas fa-lock text-white/30 mb-1 group-hover:text-white/60 transition-colors"></i>
+                <span id="manual-lock-text" class="text-[8px] uppercase font-bold opacity-30">Lock</span>
             </button>
           </div>
 
@@ -1697,7 +1735,7 @@ select option {
         const payload = {
             action: "stop",
             pair: pair,
-            leverage: 1, trade_size_usd: 0, persona_set: "concise", counter_trade: false, aiflip: false, auto_config: false, dynamic_tp: false
+            leverage: 1, trade_size_usd: 0, persona_set: "concise", counter_trade: false, aiflip: false, auto_config: false, dynamic_tp: false, hard_stop_loss: false
 
         };
 
@@ -3135,6 +3173,51 @@ select option {
         const modal = document.getElementById('settings-modal');
         modal.classList.remove('show');
         setTimeout(() => modal.classList.add('hidden'), 300);
+    }
+
+    function openSwitchesInfo() {
+        const modal = document.getElementById('switches-info-modal');
+        modal.classList.remove('hidden');
+        setTimeout(() => modal.classList.add('show'), 10);
+    }
+
+    function closeSwitchesInfo(event) {
+        if (event && event.target !== event.currentTarget) return;
+        const modal = document.getElementById('switches-info-modal');
+        modal.classList.remove('show');
+        setTimeout(() => modal.classList.add('hidden'), 300);
+    }
+
+    let manualTradeEnabled = false;
+    function toggleManualTradeButtons() {
+        manualTradeEnabled = !manualTradeEnabled;
+        const btnLong = document.getElementById('btn-long');
+        const btnShort = document.getElementById('btn-short');
+        const toggleBtn = document.getElementById('btn-manual-toggle');
+        const icon = document.getElementById('manual-lock-icon');
+        const text = document.getElementById('manual-lock-text');
+
+        if (manualTradeEnabled) {
+            btnLong.disabled = false;
+            btnShort.disabled = false;
+            
+            toggleBtn.classList.add('bg-red-500/10', 'border-red-500/30');
+            toggleBtn.classList.remove('bg-white/5', 'border-white/10');
+            
+            icon.className = "fas fa-unlock text-red-400 mb-1";
+            text.textContent = "Live";
+            text.className = "text-[8px] uppercase font-bold text-red-400";
+        } else {
+            btnLong.disabled = true;
+            btnShort.disabled = true;
+            
+            toggleBtn.classList.remove('bg-red-500/10', 'border-red-500/30');
+            toggleBtn.classList.add('bg-white/5', 'border-white/10');
+            
+            icon.className = "fas fa-lock text-white/30 mb-1 group-hover:text-white/60 transition-colors";
+            text.textContent = "Lock";
+            text.className = "text-[8px] uppercase font-bold opacity-30";
+        }
     }
 
     function loadDefaultSystemSettings() {
