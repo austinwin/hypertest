@@ -300,6 +300,375 @@ select option {
     </div>
   </div>
 
+  <!-- Pair Manager Modal -->
+  <div id="pair-manager-modal" class="fixed inset-0 z-[80] bg-black/90 backdrop-blur-sm flex items-center justify-center hidden p-4" onclick="closePairManager(event)">
+    <div class="glass p-6 rounded-2xl w-full max-w-2xl shadow-2xl border border-violet-500/30 relative flex flex-col max-h-[85vh]" onclick="event.stopPropagation()">
+      <button onclick="closePairManager()" class="absolute top-4 right-4 text-white/50 hover:text-white">
+        <i class="fas fa-times"></i>
+      </button>
+      <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+        <i class="fas fa-list text-violet-400"></i> Pair Manager
+      </h2>
+      
+      <div class="flex gap-2 mb-4">
+        <div class="relative flex-1">
+            <i class="fas fa-search absolute left-3 top-3 text-white/30"></i>
+            <input type="text" id="pair-search" placeholder="Search pairs (e.g. SOL, BTC)..." class="w-full pl-10 pr-4 py-2 rounded-lg bg-white/5 border border-white/10 focus:border-violet-500 focus:outline-none text-sm" oninput="filterPairTable()">
+        </div>
+        <button onclick="refreshPairData()" class="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10" title="Refresh Data">
+            <i class="fas fa-sync-alt text-white/70"></i>
+        </button>
+      </div>
+
+      <!-- Table Header -->
+      <div class="grid grid-cols-12 gap-2 px-2 py-2 text-[10px] font-bold uppercase tracking-wider opacity-60 border-b border-white/10">
+        <div class="col-span-3 cursor-pointer hover:text-white" onclick="sortPairs('name')">Pair <i class="fas fa-sort ml-1"></i></div>
+        <div class="col-span-3 md:col-span-2 text-right cursor-pointer hover:text-white" onclick="sortPairs('price')">Price <i class="fas fa-sort ml-1"></i></div>
+        <div class="col-span-3 md:col-span-2 text-right cursor-pointer hover:text-white" onclick="sortPairs('change')">24h % <i class="fas fa-sort ml-1"></i></div>
+        <div class="hidden md:block md:col-span-3 text-right cursor-pointer hover:text-white" onclick="sortPairs('volume')">Vol (24h) <i class="fas fa-sort ml-1"></i></div>
+        <div class="col-span-3 md:col-span-2 text-center">Action</div>
+      </div>
+
+      <!-- Table Body -->
+      <div id="pair-table-body" class="overflow-y-auto flex-1 pr-1 space-y-1 mt-1">
+         <div class="text-center py-8 opacity-50"><i class="fas fa-circle-notch spin"></i> Loading pairs...</div>
+      </div>
+      
+      <div class="mt-4 pt-4 border-t border-white/10 flex justify-between items-center">
+          <span class="text-xs opacity-50" id="pair-count-label">0 pairs selected</span>
+          <button onclick="closePairManager()" class="px-6 py-2 rounded-lg bg-violet-600 hover:bg-violet-700 font-bold text-sm">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- System Settings Modal -->
+  <div id="system-settings-modal" class="fixed inset-0 z-[90] bg-black/80 backdrop-blur-sm flex items-center justify-center hidden p-4" onclick="closeSystemSettings(event)">
+    <div class="glass p-6 rounded-2xl w-full max-w-sm shadow-2xl border border-violet-500/30 relative max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+      <button onclick="closeSystemSettings()" class="absolute top-4 right-4 text-white/50 hover:text-white">
+        <i class="fas fa-times"></i>
+      </button>
+      <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
+        <i class="fas fa-sliders-h text-violet-400"></i> System Parameters
+      </h2>
+      
+      <div class="space-y-4 mb-6">
+        <!-- AI Temperature -->
+        <div>
+            <label class="block text-[10px] font-bold uppercase tracking-wide opacity-70 mb-1">AI Creativity (Temp)</label>
+            <input type="number" id="sys-temp" min="0" max="2.0" step="0.1" class="w-full px-3 py-2 rounded-lg bg-white/10 border border-white/15 focus:border-violet-500 focus:outline-none text-sm font-mono text-violet-300">
+            <p class="text-[10px] opacity-80 mt-1">Higher, more randome. Lower, more deterministic.</p>
+        </div>
+
+        <!-- AI Interval -->
+        <div>
+            <label class="block text-[10px] font-bold uppercase tracking-wide opacity-70 mb-1">Analysis Freq (Min)</label>
+            <input type="number" id="sys-interval" min="0.5" step="0.1" class="w-full px-3 py-2 rounded-lg bg-white/10 border border-white/15 focus:border-violet-500 focus:outline-none text-sm font-mono text-violet-300">
+            <p class="text-[10px] opacity-80 mt-1">How often the bot analyzes the market for new signals.</p>
+        </div>
+
+        <!-- Cooldown -->
+        <div>
+            <label class="block text-[10px] font-bold uppercase tracking-wide opacity-70 mb-1">Cooldown (Min)</label>
+            <input type="number" id="sys-cooldown" min="0.5" step="0.1" class="w-full px-3 py-2 rounded-lg bg-white/10 border border-white/15 focus:border-violet-500 focus:outline-none text-sm font-mono text-violet-300">
+            <p class="text-[10px] opacity-80 mt-1">Wait time after closing a position before trading again.</p>
+        </div>
+
+        <!-- AI Flip Interval -->
+        <div>
+            <label class="block text-[10px] font-bold uppercase tracking-wide opacity-70 mb-1">Flip Check Freq (Min)</label>
+            <input type="number" id="sys-flip" min="1" step="0.1" class="w-full px-3 py-2 rounded-lg bg-white/10 border border-white/15 focus:border-violet-500 focus:outline-none text-sm font-mono text-violet-300">
+            <p class="text-[10px] opacity-80 mt-1">How often to check for reversal signals while in a position.</p>
+        </div>
+
+        <!-- Cooldown -->
+        <div>
+            <label class="block text-[10px] font-bold uppercase tracking-wide opacity-70 mb-1">Hard Stop Loss (Min)</label>
+            <input type="number" id="sys-hard-stop-loss" min="0.5" step="0.1" class="w-full px-3 py-2 rounded-lg bg-white/10 border border-white/15 focus:border-violet-500 focus:outline-none text-sm font-mono text-violet-300">
+            <p class="text-[10px] opacity-80 mt-1">Enforces a strict stop loss order on the exchange for safety.</p>
+        </div>
+
+        <!-- AI Flip Confidence -->
+        <div>
+            <label class="block text-[10px] font-bold uppercase tracking-wide opacity-70 mb-1">Flip Confidence Required</label>
+            <div class="grid grid-cols-2 gap-2" id="sys-flip-conf-container">
+                <label class="flex items-center gap-2 bg-white/5 p-2 rounded border border-white/10 cursor-pointer hover:bg-white/10">
+                    <input type="checkbox" value="LOW" class="accent-violet-500 w-3 h-3">
+                    <span class="text-xs">Low</span>
+                </label>
+                <label class="flex items-center gap-2 bg-white/5 p-2 rounded border border-white/10 cursor-pointer hover:bg-white/10">
+                    <input type="checkbox" value="MEDIUM" class="accent-violet-500 w-3 h-3">
+                    <span class="text-xs">Medium</span>
+                </label>
+                <label class="flex items-center gap-2 bg-white/5 p-2 rounded border border-white/10 cursor-pointer hover:bg-white/10">
+                    <input type="checkbox" value="HIGH" class="accent-violet-500 w-3 h-3">
+                    <span class="text-xs">High</span>
+                </label>
+                <label class="flex items-center gap-2 bg-white/5 p-2 rounded border border-white/10 cursor-pointer hover:bg-white/10">
+                    <input type="checkbox" value="VERY_HIGH" class="accent-violet-500 w-3 h-3">
+                    <span class="text-xs">Very High</span>
+                </label>
+            </div>
+            <p class="text-[10px] opacity-80 mt-1">Confidence levels required to trigger a position flip.</p>
+        </div>
+      </div>
+
+      <div class="flex gap-3">
+        <button onclick="loadDefaultSystemSettings()" class="flex-1 py-3 rounded-xl font-bold bg-white/5 hover:bg-white/10 border border-white/10 text-xs uppercase tracking-wide transition-colors">
+            Defaults
+        </button>
+        <button onclick="saveSystemSettings()" id="btn-save-sys" class="flex-[2] py-3 btn-primary rounded-xl font-bold bg-violet-600 hover:bg-violet-700">
+            Update Parameters
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pair Manager Modal -->
+  <div id="pair-manager-modal" class="fixed inset-0 z-[80] bg-black/90 backdrop-blur-sm flex items-center justify-center hidden p-4" onclick="closePairManager(event)">
+    <div class="glass p-6 rounded-2xl w-full max-w-2xl shadow-2xl border border-violet-500/30 relative flex flex-col max-h-[85vh]" onclick="event.stopPropagation()">
+      <button onclick="closePairManager()" class="absolute top-4 right-4 text-white/50 hover:text-white">
+        <i class="fas fa-times"></i>
+      </button>
+      <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+        <i class="fas fa-list text-violet-400"></i> Pair Manager
+      </h2>
+      
+      <div class="flex gap-2 mb-4">
+        <div class="relative flex-1">
+            <i class="fas fa-search absolute left-3 top-3 text-white/30"></i>
+            <input type="text" id="pair-search" placeholder="Search pairs (e.g. SOL, BTC)..." class="w-full pl-10 pr-4 py-2 rounded-lg bg-white/5 border border-white/10 focus:border-violet-500 focus:outline-none text-sm" oninput="filterPairTable()">
+        </div>
+        <button onclick="refreshPairData()" class="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10" title="Refresh Data">
+            <i class="fas fa-sync-alt text-white/70"></i>
+        </button>
+      </div>
+
+      <!-- Table Header -->
+      <div class="grid grid-cols-12 gap-2 px-2 py-2 text-[10px] font-bold uppercase tracking-wider opacity-60 border-b border-white/10">
+        <div class="col-span-3 cursor-pointer hover:text-white" onclick="sortPairs('name')">Pair <i class="fas fa-sort ml-1"></i></div>
+        <div class="col-span-3 md:col-span-2 text-right cursor-pointer hover:text-white" onclick="sortPairs('price')">Price <i class="fas fa-sort ml-1"></i></div>
+        <div class="col-span-3 md:col-span-2 text-right cursor-pointer hover:text-white" onclick="sortPairs('change')">24h % <i class="fas fa-sort ml-1"></i></div>
+        <div class="hidden md:block md:col-span-3 text-right cursor-pointer hover:text-white" onclick="sortPairs('volume')">Vol (24h) <i class="fas fa-sort ml-1"></i></div>
+        <div class="col-span-3 md:col-span-2 text-center">Action</div>
+      </div>
+
+      <!-- Table Body -->
+      <div id="pair-table-body" class="overflow-y-auto flex-1 pr-1 space-y-1 mt-1">
+         <div class="text-center py-8 opacity-50"><i class="fas fa-circle-notch spin"></i> Loading pairs...</div>
+      </div>
+      
+      <div class="mt-4 pt-4 border-t border-white/10 flex justify-between items-center">
+          <span class="text-xs opacity-50" id="pair-count-label">0 pairs selected</span>
+          <button onclick="closePairManager()" class="px-6 py-2 rounded-lg bg-violet-600 hover:bg-violet-700 font-bold text-sm">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- System Settings Modal -->
+  <div id="system-settings-modal" class="fixed inset-0 z-[90] bg-black/80 backdrop-blur-sm flex items-center justify-center hidden p-4" onclick="closeSystemSettings(event)">
+    <div class="glass p-6 rounded-2xl w-full max-w-sm shadow-2xl border border-violet-500/30 relative max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+      <button onclick="closeSystemSettings()" class="absolute top-4 right-4 text-white/50 hover:text-white">
+        <i class="fas fa-times"></i>
+      </button>
+      <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
+        <i class="fas fa-sliders-h text-violet-400"></i> System Parameters
+      </h2>
+      
+      <div class="space-y-4 mb-6">
+        <!-- AI Temperature -->
+        <div>
+            <label class="block text-[10px] font-bold uppercase tracking-wide opacity-70 mb-1">AI Creativity (Temp)</label>
+            <input type="number" id="sys-temp" min="0" max="2.0" step="0.1" class="w-full px-3 py-2 rounded-lg bg-white/10 border border-white/15 focus:border-violet-500 focus:outline-none text-sm font-mono text-violet-300">
+            <p class="text-[10px] opacity-80 mt-1">Higher, more randome. Lower, more deterministic.</p>
+        </div>
+
+        <!-- AI Interval -->
+        <div>
+            <label class="block text-[10px] font-bold uppercase tracking-wide opacity-70 mb-1">Analysis Freq (Min)</label>
+            <input type="number" id="sys-interval" min="0.5" step="0.1" class="w-full px-3 py-2 rounded-lg bg-white/10 border border-white/15 focus:border-violet-500 focus:outline-none text-sm font-mono text-violet-300">
+            <p class="text-[10px] opacity-80 mt-1">How often the bot analyzes the market for new signals.</p>
+        </div>
+
+        <!-- Cooldown -->
+        <div>
+            <label class="block text-[10px] font-bold uppercase tracking-wide opacity-70 mb-1">Cooldown (Min)</label>
+            <input type="number" id="sys-cooldown" min="0.5" step="0.1" class="w-full px-3 py-2 rounded-lg bg-white/10 border border-white/15 focus:border-violet-500 focus:outline-none text-sm font-mono text-violet-300">
+            <p class="text-[10px] opacity-80 mt-1">Wait time after closing a position before trading again.</p>
+        </div>
+
+        <!-- AI Flip Interval -->
+        <div>
+            <label class="block text-[10px] font-bold uppercase tracking-wide opacity-70 mb-1">Flip Check Freq (Min)</label>
+            <input type="number" id="sys-flip" min="1" step="0.1" class="w-full px-3 py-2 rounded-lg bg-white/10 border border-white/15 focus:border-violet-500 focus:outline-none text-sm font-mono text-violet-300">
+            <p class="text-[10px] opacity-80 mt-1">How often to check for reversal signals while in a position.</p>
+        </div>
+
+        <!-- Hard Stop Loss -->
+        <div>
+            <label class="block text-[10px] font-bold uppercase tracking-wide opacity-70 mb-1">Hard Stop Loss (Min)</label>
+            <input type="number" id="sys-hard-stop-loss" min="0.5" step="0.1" class="w-full px-3 py-2 rounded-lg bg-white/10 border border-white/15 focus:border-violet-500 focus:outline-none text-sm font-mono text-violet-300">
+            <p class="text-[10px] opacity-80 mt-1">Enforces a strict stop loss order on the exchange for safety.</p>
+        </div>
+
+        <!-- AI Flip Confidence -->
+        <div>
+            <label class="block text-[10px] font-bold uppercase tracking-wide opacity-70 mb-1">Flip Confidence Required</label>
+            <div class="grid grid-cols-2 gap-2" id="sys-flip-conf-container">
+                <label class="flex items-center gap-2 bg-white/5 p-2 rounded border border-white/10 cursor-pointer hover:bg-white/10">
+                    <input type="checkbox" value="LOW" class="accent-violet-500 w-3 h-3">
+                    <span class="text-xs">Low</span>
+                </label>
+                <label class="flex items-center gap-2 bg-white/5 p-2 rounded border border-white/10 cursor-pointer hover:bg-white/10">
+                    <input type="checkbox" value="MEDIUM" class="accent-violet-500 w-3 h-3">
+                    <span class="text-xs">Medium</span>
+                </label>
+                <label class="flex items-center gap-2 bg-white/5 p-2 rounded border border-white/10 cursor-pointer hover:bg-white/10">
+                    <input type="checkbox" value="HIGH" class="accent-violet-500 w-3 h-3">
+                    <span class="text-xs">High</span>
+                </label>
+                <label class="flex items-center gap-2 bg-white/5 p-2 rounded border border-white/10 cursor-pointer hover:bg-white/10">
+                    <input type="checkbox" value="VERY_HIGH" class="accent-violet-500 w-3 h-3">
+                    <span class="text-xs">Very High</span>
+                </label>
+            </div>
+            <p class="text-[10px] opacity-80 mt-1">Confidence levels required to trigger a position flip.</p>
+        </div>
+      </div>
+
+      <div class="flex gap-3">
+        <button onclick="loadDefaultSystemSettings()" class="flex-1 py-3 rounded-xl font-bold bg-white/5 hover:bg-white/10 border border-white/10 text-xs uppercase tracking-wide transition-colors">
+            Defaults
+        </button>
+        <button onclick="saveSystemSettings()" id="btn-save-sys" class="flex-[2] py-3 btn-primary rounded-xl font-bold bg-violet-600 hover:bg-violet-700">
+            Update Parameters
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pair Manager Modal -->
+  <div id="pair-manager-modal" class="fixed inset-0 z-[80] bg-black/90 backdrop-blur-sm flex items-center justify-center hidden p-4" onclick="closePairManager(event)">
+    <div class="glass p-6 rounded-2xl w-full max-w-2xl shadow-2xl border border-violet-500/30 relative flex flex-col max-h-[85vh]" onclick="event.stopPropagation()">
+      <button onclick="closePairManager()" class="absolute top-4 right-4 text-white/50 hover:text-white">
+        <i class="fas fa-times"></i>
+      </button>
+      <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+        <i class="fas fa-list text-violet-400"></i> Pair Manager
+      </h2>
+      
+      <div class="flex gap-2 mb-4">
+        <div class="relative flex-1">
+            <i class="fas fa-search absolute left-3 top-3 text-white/30"></i>
+            <input type="text" id="pair-search" placeholder="Search pairs (e.g. SOL, BTC)..." class="w-full pl-10 pr-4 py-2 rounded-lg bg-white/5 border border-white/10 focus:border-violet-500 focus:outline-none text-sm" oninput="filterPairTable()">
+        </div>
+        <button onclick="refreshPairData()" class="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10" title="Refresh Data">
+            <i class="fas fa-sync-alt text-white/70"></i>
+        </button>
+      </div>
+
+      <!-- Table Header -->
+      <div class="grid grid-cols-12 gap-2 px-2 py-2 text-[10px] font-bold uppercase tracking-wider opacity-60 border-b border-white/10">
+        <div class="col-span-3 cursor-pointer hover:text-white" onclick="sortPairs('name')">Pair <i class="fas fa-sort ml-1"></i></div>
+        <div class="col-span-3 md:col-span-2 text-right cursor-pointer hover:text-white" onclick="sortPairs('price')">Price <i class="fas fa-sort ml-1"></i></div>
+        <div class="col-span-3 md:col-span-2 text-right cursor-pointer hover:text-white" onclick="sortPairs('change')">24h % <i class="fas fa-sort ml-1"></i></div>
+        <div class="hidden md:block md:col-span-3 text-right cursor-pointer hover:text-white" onclick="sortPairs('volume')">Vol (24h) <i class="fas fa-sort ml-1"></i></div>
+        <div class="col-span-3 md:col-span-2 text-center">Action</div>
+      </div>
+
+      <!-- Table Body -->
+      <div id="pair-table-body" class="overflow-y-auto flex-1 pr-1 space-y-1 mt-1">
+         <div class="text-center py-8 opacity-50"><i class="fas fa-circle-notch spin"></i> Loading pairs...</div>
+      </div>
+      
+      <div class="mt-4 pt-4 border-t border-white/10 flex justify-between items-center">
+          <span class="text-xs opacity-50" id="pair-count-label">0 pairs selected</span>
+          <button onclick="closePairManager()" class="px-6 py-2 rounded-lg bg-violet-600 hover:bg-violet-700 font-bold text-sm">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- System Settings Modal -->
+  <div id="system-settings-modal" class="fixed inset-0 z-[90] bg-black/80 backdrop-blur-sm flex items-center justify-center hidden p-4" onclick="closeSystemSettings(event)">
+    <div class="glass p-6 rounded-2xl w-full max-w-sm shadow-2xl border border-violet-500/30 relative max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+      <button onclick="closeSystemSettings()" class="absolute top-4 right-4 text-white/50 hover:text-white">
+        <i class="fas fa-times"></i>
+      </button>
+      <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
+        <i class="fas fa-sliders-h text-violet-400"></i> System Parameters
+      </h2>
+      
+      <div class="space-y-4 mb-6">
+        <!-- AI Temperature -->
+        <div>
+            <label class="block text-[10px] font-bold uppercase tracking-wide opacity-70 mb-1">AI Creativity (Temp)</label>
+            <input type="number" id="sys-temp" min="0" max="2.0" step="0.1" class="w-full px-3 py-2 rounded-lg bg-white/10 border border-white/15 focus:border-violet-500 focus:outline-none text-sm font-mono text-violet-300">
+            <p class="text-[10px] opacity-80 mt-1">Higher, more randome. Lower, more deterministic.</p>
+        </div>
+
+        <!-- AI Interval -->
+        <div>
+            <label class="block text-[10px] font-bold uppercase tracking-wide opacity-70 mb-1">Analysis Freq (Min)</label>
+            <input type="number" id="sys-interval" min="0.5" step="0.1" class="w-full px-3 py-2 rounded-lg bg-white/10 border border-white/15 focus:border-violet-500 focus:outline-none text-sm font-mono text-violet-300">
+            <p class="text-[10px] opacity-80 mt-1">How often the bot analyzes the market for new signals.</p>
+        </div>
+
+        <!-- Cooldown -->
+        <div>
+            <label class="block text-[10px] font-bold uppercase tracking-wide opacity-70 mb-1">Cooldown (Min)</label>
+            <input type="number" id="sys-cooldown" min="0.5" step="0.1" class="w-full px-3 py-2 rounded-lg bg-white/10 border border-white/15 focus:border-violet-500 focus:outline-none text-sm font-mono text-violet-300">
+            <p class="text-[10px] opacity-80 mt-1">Wait time after closing a position before trading again.</p>
+        </div>
+
+        <!-- AI Flip Interval -->
+        <div>
+            <label class="block text-[10px] font-bold uppercase tracking-wide opacity-70 mb-1">Flip Check Freq (Min)</label>
+            <input type="number" id="sys-flip" min="1" step="0.1" class="w-full px-3 py-2 rounded-lg bg-white/10 border border-white/15 focus:border-violet-500 focus:outline-none text-sm font-mono text-violet-300">
+            <p class="text-[10px] opacity-80 mt-1">How often to check for reversal signals while in a position.</p>
+        </div>
+
+        <!-- Hard Stop Loss -->
+        <div>
+            <label class="block text-[10px] font-bold uppercase tracking-wide opacity-70 mb-1">Hard Stop Loss (Min)</label>
+            <input type="number" id="sys-hard-stop-loss" min="0.5" step="0.1" class="w-full px-3 py-2 rounded-lg bg-white/10 border border-white/15 focus:border-violet-500 focus:outline-none text-sm font-mono text-violet-300">
+            <p class="text-[10px] opacity-80 mt-1">Enforces a strict stop loss order on the exchange for safety.</p>
+        </div>
+
+        <!-- AI Flip Confidence -->
+        <div>
+            <label class="block text-[10px] font-bold uppercase tracking-wide opacity-70 mb-1">Flip Confidence Required</label>
+            <div class="grid grid-cols-2 gap-2" id="sys-flip-conf-container">
+                <label class="flex items-center gap-2 bg-white/5 p-2 rounded border border-white/10 cursor-pointer hover:bg-white/10">
+                    <input type="checkbox" value="LOW" class="accent-violet-500 w-3 h-3">
+                    <span class="text-xs">Low</span>
+                </label>
+                <label class="flex items-center gap-2 bg-white/5 p-2 rounded border border-white/10 cursor-pointer hover:bg-white/10">
+                    <input type="checkbox" value="MEDIUM" class="accent-violet-500 w-3 h-3">
+                    <span class="text-xs">Medium</span>
+                </label>
+                <label class="flex items-center gap-2 bg-white/5 p-2 rounded border border-white/10 cursor-pointer hover:bg-white/10">
+                    <input type="checkbox" value="HIGH" class="accent-violet-500 w-3 h-3">
+                    <span class="text-xs">High</span>
+                </label>
+                <label class="flex items-center gap-2 bg-white/5 p-2 rounded border border-white/10 cursor-pointer hover:bg-white/10">
+                    <input type="checkbox" value="VERY_HIGH" class="accent-violet-500 w-3 h-3">
+                    <span class="text-xs">Very High</span>
+                </label>
+            </div>
+            <p class="text-[10px] opacity-80 mt-1">Confidence levels required to trigger a position flip.</p>
+        </div>
+      </div>
+
+      <div class="flex gap-3">
+        <button onclick="loadDefaultSystemSettings()" class="flex-1 py-3 rounded-xl font-bold bg-white/5 hover:bg-white/10 border border-white/10 text-xs uppercase tracking-wide transition-colors">
+            Defaults
+        </button>
+        <button onclick="saveSystemSettings()" id="btn-save-sys" class="flex-[2] py-3 btn-primary rounded-xl font-bold bg-violet-600 hover:bg-violet-700">
+            Update Parameters
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Battle Manager Modal -->
   <div id="battle-modal" class="fixed inset-0 z-[85] bg-black/85 backdrop-blur-sm flex items-center justify-center hidden p-4" onclick="closeBattleManager(event)">
     <div class="glass p-6 rounded-2xl w-full max-w-3xl shadow-2xl border border-violet-500/30 relative max-h-[85vh] overflow-y-auto" onclick="event.stopPropagation()">
@@ -385,15 +754,81 @@ select option {
       <button onclick="closeSwitchesInfo()" class="absolute top-4 right-4 text-white/50 hover:text-white">
         <i class="fas fa-times" style="position: relative; top: -2px; left: -2px;"></i>
       </button>
-      <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
-        <i class="fas fa-info-circle text-violet-400"></i> Control Switches
+      <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
+        <i class="fas fa-toggle-on text-violet-400"></i> Bot Switches
       </h2>
-      <div class="space-y-3 text-sm opacity-80">
-        <div><span class="font-bold text-amber-400">Counter Trade:</span> Reverses AI signals to trade against the predicted trend.</div>
-        <div><span class="font-bold text-blue-400">AI Flip:</span> Automatically reverses position if AI detects a strong trend change.</div>
-        <div><span class="font-bold text-purple-400">Dyn Config:</span> Allows AI to dynamically adjust leverage and trade size based on confidence.</div>
-        <div><span class="font-bold text-cyan-400">Dyn TP:</span> AI adjusts Take Profit targets based on market volatility.</div>
-        <div><span class="font-bold text-rose-400">Hard SL:</span> Enforces a strict stop loss order on the exchange for safety.</div>
+      <div class="space-y-5">
+        <!-- Counter Trade -->
+        <div>
+            <div class="flex items-center justify-between mb-1 cursor-pointer" onclick="toggleCounterTrade()">
+                <span class="font-bold text-sm text-amber-400">Counter Trade</span>
+                <div id="counter-trade-switch" class="w-9 h-5 rounded-full bg-white/10 relative transition-colors border border-white/10">
+                    <div id="counter-trade-knob" class="absolute left-0.5 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white/40 transition-all shadow-sm"></div>
+                </div>
+            </div>
+            <p class="text-xs opacity-60">Reverses AI signals to trade against the predicted trend.</p>
+            <span id="counter-trade-label" class="hidden"></span>
+        </div>
+
+        <!-- AI Flip -->
+        <div>
+            <div class="flex items-center justify-between mb-1 cursor-pointer" onclick="toggleAiFlip()">
+                <span class="font-bold text-sm text-blue-400">AI Flip</span>
+                <div id="aiflip-switch" class="w-9 h-5 rounded-full bg-white/10 relative transition-colors border border-white/10">
+                    <div id="aiflip-knob" class="absolute left-0.5 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white/40 transition-all shadow-sm"></div>
+                </div>
+            </div>
+            <p class="text-xs opacity-60">Automatically reverses position if AI detects a strong trend change.</p>
+            <span id="aiflip-label" class="hidden"></span>
+        </div>
+
+        <!-- Auto Config -->
+        <div>
+            <div class="flex items-center justify-between mb-1 cursor-pointer" onclick="toggleAutoConfig()">
+                <span class="font-bold text-sm text-purple-400">Dynamic Config</span>
+                <div id="autoconfig-switch" class="w-9 h-5 rounded-full bg-white/10 relative transition-colors border border-white/10">
+                    <div id="autoconfig-knob" class="absolute left-0.5 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white/40 transition-all shadow-sm"></div>
+                </div>
+            </div>
+            <p class="text-xs opacity-60">Allows AI to dynamically adjust leverage and trade size based on confidence.</p>
+            <span id="autoconfig-label" class="hidden"></span>
+        </div>
+
+        <!-- Dynamic TP -->
+        <div>
+            <div class="flex items-center justify-between mb-1 cursor-pointer" onclick="toggleDynamicTp()">
+                <span class="font-bold text-sm text-cyan-400">Dynamic TP</span>
+                <div id="dynamictp-switch" class="w-9 h-5 rounded-full bg-white/10 relative transition-colors border border-white/10">
+                    <div id="dynamictp-knob" class="absolute left-0.5 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white/40 transition-all shadow-sm"></div>
+                </div>
+            </div>
+            <p class="text-xs opacity-60">AI adjusts Take Profit targets based on market volatility.</p>
+            <span id="dynamictp-label" class="hidden"></span>
+        </div>
+
+        <!-- Hard Stop Loss -->
+        <div>
+            <div class="flex items-center justify-between mb-1 cursor-pointer" onclick="toggleHardStopLoss()">
+                <span class="font-bold text-sm text-rose-400">Hard Stop Loss</span>
+                <div id="hardstoploss-switch" class="w-9 h-5 rounded-full bg-white/10 relative transition-colors border border-white/10">
+                    <div id="hardstoploss-knob" class="absolute left-0.5 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white/40 transition-all shadow-sm"></div>
+                </div>
+            </div>
+            <p class="text-xs opacity-60">Enforces a strict stop loss order on the exchange for safety.</p>
+            <span id="hardstoploss-label" class="hidden"></span>
+        </div>
+
+        <!-- Custom Prompt -->
+        <div>
+            <div class="flex items-center justify-between mb-1 cursor-pointer" onclick="toggleCustomPrompt()">
+                <span class="font-bold text-sm text-emerald-400">Custom Prompt</span>
+                <div id="customprompt-switch" class="w-9 h-5 rounded-full bg-white/10 relative transition-colors border border-white/10">
+                    <div id="customprompt-knob" class="absolute left-0.5 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white/40 transition-all shadow-sm"></div>
+                </div>
+            </div>
+            <p class="text-xs opacity-60">Uses a specialized prompt structure for AI analysis.</p>
+            <span id="customprompt-label" class="hidden"></span>
+        </div>
       </div>
     </div>
   </div>
@@ -464,51 +899,6 @@ select option {
              <div class="flex flex-col gap-3 mb-4">
                 <!-- Market Stats Row -->
                 <div id="market-changes" class="flex justify-between items-center gap-2 text-xs font-mono opacity-80 bg-black/20 p-2 rounded-lg border border-white/5 min-h-[32px]"></div>
-
-                <!-- Switches Row -->
-                <div class="relative">
-                    <div class="grid grid-cols-5 gap-2 bg-black/20 p-2 rounded-xl border border-white/5">
-                        <!-- Counter Trade Switch -->
-                        <div class="flex flex-col items-center gap-1.5 cursor-pointer group p-1 rounded transition-colors" onclick="toggleCounterTrade()" title="Counter Trade Mode">
-                            <div id="counter-trade-switch" class="w-9 h-5 rounded-full bg-white/10 relative transition-colors border border-white/10 hover:bg-white/5">
-                                <div id="counter-trade-knob" class="absolute left-0.5 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white/40 transition-all shadow-sm"></div>
-                            </div>
-                            <span class="text-[9px] uppercase font-bold opacity-40 transition-colors" id="counter-trade-label">Follow AI</span>
-                        </div>
-
-                        <!-- AI Flip Switch -->
-                        <div class="flex flex-col items-center gap-1.5 cursor-pointer group p-1 rounded transition-colors" onclick="toggleAiFlip()" title="AI Flip Mode">
-                            <div id="aiflip-switch" class="w-9 h-5 rounded-full bg-white/10 relative transition-colors border border-white/10 hover:bg-white/5">
-                                <div id="aiflip-knob" class="absolute left-0.5 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white/40 transition-all shadow-sm"></div>
-                            </div>
-                            <span class="text-[9px] uppercase font-bold opacity-40 transition-colors" id="aiflip-label">Revert Sig</span>
-                        </div>
-
-                        <!-- Auto Config Switch -->
-                        <div class="flex flex-col items-center gap-1.5 cursor-pointer group p-1 rounded transition-colors" onclick="toggleAutoConfig()" title="Dync Config Mode">
-                            <div id="autoconfig-switch" class="w-9 h-5 rounded-full bg-white/10 relative transition-colors border border-white/10 hover:bg-white/5">
-                                <div id="autoconfig-knob" class="absolute left-0.5 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white/40 transition-all shadow-sm"></div>
-                            </div>
-                            <span class="text-[9px] uppercase font-bold opacity-40 transition-colors" id="autoconfig-label">Dyn Config</span>
-                        </div>
-
-                        <!-- Dynamic TP Switch -->
-                        <div class="flex flex-col items-center gap-1.5 cursor-pointer group p-1 rounded transition-colors" onclick="toggleDynamicTp()" title="Dynamic TP Mode">
-                            <div id="dynamictp-switch" class="w-9 h-5 rounded-full bg-white/10 relative transition-colors border border-white/10 hover:bg-white/5">
-                                <div id="dynamictp-knob" class="absolute left-0.5 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white/40 transition-all shadow-sm"></div>
-                            </div>
-                            <span class="text-[9px] uppercase font-bold opacity-40 transition-colors" id="dynamictp-label">Dyn TP</span>
-                        </div>
-
-                        <!-- Hard Stop Loss Switch -->
-                        <div class="flex flex-col items-center gap-1.5 cursor-pointer group p-1 rounded transition-colors" onclick="toggleHardStopLoss()" title="Hard Stop Loss Mode">
-                            <div id="hardstoploss-switch" class="w-9 h-5 rounded-full bg-white/10 relative transition-colors border border-white/10 hover:bg-white/5">
-                                <div id="hardstoploss-knob" class="absolute left-0.5 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white/40 transition-all shadow-sm"></div>
-                            </div>
-                            <span class="text-[9px] uppercase font-bold opacity-40 transition-colors" id="hardstoploss-label">Hard SL</span>
-                        </div>
-                    </div>
-                </div>
              </div>
 
              <!-- AI Actions Grid -->
@@ -525,10 +915,10 @@ select option {
                     <span class="text-xs font-bold opacity-90">Ask AI</span>
                  </button>
 
-                 <!-- Information Button -->
+                 <!-- Switches Button -->
                  <button onclick="openSwitchesInfo()" class="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 transition-all group shadow-sm">
-                    <i class="fas fa-info-circle text-gray-300 text-sm group-hover:scale-110 transition-transform"></i>
-                    <span class="text-xs font-bold opacity-90">Info</span>
+                    <i class="fas fa-sliders-h text-gray-300 text-sm group-hover:scale-110 transition-transform"></i>
+                    <span class="text-xs font-bold opacity-90">Config</span>
                  </button>
              </div>
           </div>
@@ -880,6 +1270,8 @@ select option {
     let aiFlipActive = false; // New state for AI Flip
     let autoConfigActive = false; // New state for Dynamic TP
     let dynamicTpActive = false; // New state for Hard Stop Loss
+    let hardStopLossActive = false; // New state for Hard Stop Loss
+    let customPromptActive = false; // New state for Custom Prompt
     
     // Debounce utility
     function debounce(func, wait) {
@@ -1210,6 +1602,40 @@ select option {
         }
     }
 
+    // --- Custom Prompt Logic ---
+    function toggleCustomPrompt() {
+        customPromptActive = !customPromptActive;
+        updateCustomPromptUI();
+    }
+
+    function updateCustomPromptUI() {
+        const switchEl = document.getElementById('customprompt-switch');
+        const knob = document.getElementById('customprompt-knob');
+        const label = document.getElementById('customprompt-label');
+        
+        if (customPromptActive) {
+            switchEl.classList.remove('bg-white/10', 'border-white/10');
+            switchEl.classList.add('bg-emerald-500/20', 'border-emerald-500/50');
+            
+            knob.classList.add('translate-x-4');
+            knob.classList.remove('bg-white/40');
+            knob.classList.add('bg-emerald-400');
+            
+            label.classList.remove('opacity-40');
+            label.classList.add('text-emerald-400', 'opacity-100');
+        } else {
+            switchEl.classList.add('bg-white/10', 'border-white/10');
+            switchEl.classList.remove('bg-emerald-500/20', 'border-emerald-500/50');
+            
+            knob.classList.remove('translate-x-4');
+            knob.classList.add('bg-white/40');
+            knob.classList.remove('bg-emerald-400');
+            
+            label.classList.add('opacity-40');
+            label.classList.remove('text-emerald-400', 'opacity-100');
+        }
+    }
+
     // --- Tab Logic ---
     async function switchTab(tab) {
         const wrapper = document.getElementById('tab-content-wrapper');
@@ -1517,6 +1943,11 @@ select option {
                 ? `<span class="ml-1 text-[8px] font-bold text-rose-400 bg-rose-400/10 px-1.5 py-px rounded border border-rose-400/20 tracking-wider">SL</span>`
                 : ``;
 
+            const isCustomPrompt = bot.using_custom_prompt === true;
+            const customPromptBadge = isCustomPrompt
+                ? `<span class="ml-1 text-[8px] font-bold text-emerald-400 bg-emerald-400/10 px-1.5 py-px rounded border border-emerald-400/20 tracking-wider">PROMPT</span>`
+                : ``;
+
             let contentHtml = '';
             
             if (bot.position) {
@@ -1620,6 +2051,7 @@ select option {
                                 ${aiFlipBadge}
                                 ${dynTpBadge}
                                 ${hardSlBadge}
+                                ${customPromptBadge}
                             </div>
                         </div>
                     </div>
@@ -1702,6 +2134,10 @@ select option {
                     <span class="opacity-60">Hard Stop Loss</span>
                     <span class="font-mono ${bot.hard_stop_loss ? 'text-rose-400' : ''}">${bot.hard_stop_loss}</span>
                 </div>
+                <div class="flex justify-between border-b border-white/5 pb-1">
+                    <span class="opacity-60">Custom Prompt</span>
+                    <span class="font-mono ${bot.using_custom_prompt ? 'text-emerald-400' : ''}">${bot.using_custom_prompt}</span>
+                </div>
             </div>
 
             <div class="mt-4">
@@ -1744,7 +2180,7 @@ select option {
         const payload = {
             action: "stop",
             pair: pair,
-            leverage: 1, trade_size_usd: 0, persona_set: "concise", counter_trade: false, aiflip: false, auto_config: false, dynamic_tp: false, hard_stop_loss: false
+            leverage: 1, trade_size_usd: 0, persona_set: "concise", counter_trade: false, aiflip: false, auto_config: false, dynamic_tp: false, hard_stop_loss: false, using_custom_prompt: false
 
         };
 
@@ -1921,7 +2357,7 @@ select option {
                             <td class="p-3 font-bold">
                                 <div class="flex items-center gap-2">
                                     <span class="${isLong ? 'text-green-400' : 'text-red-400'}">${pos.pair}</span>
-                                    <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-white/10 ${isLong ? 'text-green-400' : 'text-red-400'}">
+                                    <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-white/10 ${isLong ? 'text-green-400' : 'text-red-400'}">
                                         ${isLong ? 'LONG' : 'SHORT'} ${pos.leverage}x
                                     </span>
                                 </div>
@@ -2953,6 +3389,8 @@ select option {
       updateDynamicTpUI();  
       hardStopLossActive = false;
       updateHardStopLossUI();
+      customPromptActive = false;
+      updateCustomPromptUI();
       debouncedRefresh();
     });
 
@@ -3010,6 +3448,10 @@ select option {
                 if (hardStopLossActive !== data.hard_stop_loss) {
                     hardStopLossActive = data.hard_stop_loss;
                     updateHardStopLossUI();
+                }
+                if (customPromptActive !== data.using_custom_prompt) {
+                    customPromptActive = data.using_custom_prompt;
+                    updateCustomPromptUI();
                 }
             }else {
                 // Reset defaults if bot is not running
@@ -3097,13 +3539,14 @@ select option {
             aiflip: aiFlipActive, // Send AI Flip flag
             auto_config: autoConfigActive, // Send Auto Config flag
             dynamic_tp: dynamicTpActive, // Send Dynamic TP flag
-            hard_stop_loss: hardStopLossActive // Send Hard Stop Loss flag
+            hard_stop_loss: hardStopLossActive, // Send Hard Stop Loss flag
+            using_custom_prompt: customPromptActive // Send Custom Prompt flag
           };
 
         try {
             const res = await axios.post(`${getApiBase()}/bot/configure`, payload);
             if (res.data.status === "started") {
-                showToast(`Auto Bot Started (${currentPersona}${counterTradeActive ? ', Against AI' : ''}${aiFlipActive ? ', Support Reversal' : ''}${autoConfigActive ? ', Dync Config' : ''}${hardStopLossActive ? ', Hard SL' : ''})`);
+                showToast(`Auto Bot Started (${currentPersona}${counterTradeActive ? ', Against AI' : ''}${aiFlipActive ? ', Support Reversal' : ''}${autoConfigActive ? ', Dync Config' : ''}${hardStopLossActive ? ', Hard SL' : ''}${customPromptActive ? ', Custom Prompt' : ''})`);
                 isBotRunning = true;
             } else {
                 showToast("Auto Bot Stopped");
