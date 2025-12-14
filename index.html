@@ -1477,27 +1477,36 @@ select option {
         }
     }
 
-    function updatePairDropdown() {
-        const select = document.getElementById('pair');
-        const currentVal = select.value;
-        
-        select.innerHTML = activePairs.map(p => {
-            const meta = allPairsData.find(x => x.name === p);
-            // Use a clean format for leverage
-            const levInfo = meta ? ` (${meta.max_leverage}x)` : '';
-            return `<option value="${p}/USD">${p}/USD${levInfo}</option>`;
-        }).join('');
-        
-        // Try to restore selection, or default to first
-        if (activePairs.map(p => `${p}/USD`).includes(currentVal)) {
-            select.value = currentVal;
-        } else if (activePairs.length > 0) {
-            select.value = `${activePairs[0]}/USD`;
-            // Trigger change to update UI
-            const event = new Event('change');
-            select.dispatchEvent(event);
-        }
+function updatePairDropdown() {
+    const select = document.getElementById('pair');
+    const currentVal = select.value;
+
+    // Build set of symbols that currently have a running bot
+    const runningSymbols = new Set(
+        (lastFetchedBots || [])
+            .filter(b => b.running)
+            .map(b => (b.pair || '').split('/')[0])
+    );
+
+    select.innerHTML = activePairs.map(p => {
+        const meta = allPairsData.find(x => x.name === p);
+        // Use a clean format for leverage
+        const levInfo = meta ? ` (${meta.max_leverage}x)` : '';
+        // Add an emoji if this symbol has a running bot
+        const botIcon = runningSymbols.has(p) ? ' 🤖' : '';
+        return `<option value="${p}/USD">${p}/USD${levInfo}${botIcon}</option>`;
+    }).join('');
+
+    // Try to restore selection, or default to first
+    if (activePairs.map(p => `${p}/USD`).includes(currentVal)) {
+        select.value = currentVal;
+    } else if (activePairs.length > 0) {
+        select.value = `${activePairs[0]}/USD`;
+        // Trigger change to update UI
+        const event = new Event('change');
+        select.dispatchEvent(event);
     }
+}
 
     async function openPairManager() {
         const modal = document.getElementById('pair-manager-modal');
