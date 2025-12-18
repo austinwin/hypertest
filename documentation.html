@@ -13,6 +13,7 @@
     .border-accent { border-color: #8b5cf6; } /* violet-500 */
     h1, h2, h3 { font-weight: bold; }
     code { background: rgba(0,0,0,0.3); padding: 2px 6px; rounded: 4px; font-family: monospace; color: #fbbf24; }
+    .step-number { background: rgba(139, 92, 246, 0.2); color: #a78bfa; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 12px; font-weight: bold; margin-right: 8px; border: 1px solid rgba(139, 92, 246, 0.4); }
   </style>
 </head>
 <body class="p-4 md:p-10 max-w-5xl mx-auto">
@@ -33,44 +34,143 @@
       </p>
     </section>
 
+    <!-- Quick Start -->
+    <section class="glass p-8 rounded-2xl">
+      <h2 class="text-2xl mb-4 text-accent"><i class="fas fa-bolt mr-2"></i>Quick Start</h2>
+      <div class="grid md:grid-cols-3 gap-4 text-sm">
+        <div class="bg-white/5 p-4 rounded-xl border border-white/10">
+          <div class="font-bold mb-2 text-white"><span class="step-number">1</span>Connect</div>
+          <p class="opacity-70">Enter your API Key. If using Cloudflare Access, provide Client ID & Secret.</p>
+        </div>
+        <div class="bg-white/5 p-4 rounded-xl border border-white/10">
+          <div class="font-bold mb-2 text-white"><span class="step-number">2</span>Select Pair</div>
+          <p class="opacity-70">Choose a crypto pair (e.g., SOL/USD) from the dropdown or Pair Manager.</p>
+        </div>
+        <div class="bg-white/5 p-4 rounded-xl border border-white/10">
+          <div class="font-bold mb-2 text-white"><span class="step-number">3</span>Launch Bot</div>
+          <p class="opacity-70">Configure switches, set leverage, and click the "Auto" button to start.</p>
+        </div>
+      </div>
+    </section>
+
     <!-- Configuration Guide -->
     <section class="glass p-8 rounded-2xl">
       <h2 class="text-2xl mb-6 text-accent"><i class="fas fa-sliders-h mr-2"></i>Bot Configuration Guide</h2>
+      <p class="mb-6 opacity-70">Customize the AI's behavior using the toggle switches found in the control panel.</p>
       
       <div class="grid md:grid-cols-2 gap-6">
         <div>
-          <h3 class="text-lg text-white mb-2">Core Switches</h3>
-          <ul class="space-y-4 opacity-90">
-            <li>
-              <div class="font-bold text-amber-400">Counter Trade</div>
-              <p class="text-sm">Reverses the AI's decision (Long becomes Short). <br><span class="opacity-60 italic">Best for: Choppy/Ranging markets where breakouts often fail.</span></p>
+          <h3 class="text-lg text-white mb-4 border-b border-white/10 pb-2">Strategy Modifiers</h3>
+          <ul class="space-y-6 opacity-90">
+            <li class="relative pl-4 border-l-2 border-amber-400/50">
+              <div class="font-bold text-amber-400 text-lg">Counter Trade</div>
+              <p class="text-sm mt-1">Reverses the AI's decision (Long becomes Short). <br><span class="opacity-60 italic">Use when: Market is ranging/choppy and breakouts are failing.</span></p>
             </li>
-            <li>
-              <div class="font-bold text-blue-400">AI Flip</div>
-              <p class="text-sm">Allows the bot to close a position and open the opposite side immediately if sentiment shifts.<br><span class="opacity-60 italic">Best for: High volatility scalping.</span></p>
+            <li class="relative pl-4 border-l-2 border-blue-400/50">
+              <div class="font-bold text-blue-400 text-lg">AI Flip</div>
+              <p class="text-sm mt-1">Allows the bot to close a position and open the opposite side immediately if sentiment shifts.<br><span class="opacity-60 italic">Use when: High volatility scalping is desired.</span></p>
             </li>
-            <li>
-              <div class="font-bold text-purple-400">Dynamic Config</div>
-              <p class="text-sm">AI decides the leverage and position size based on its confidence score.<br><span class="opacity-60 italic">Best for: Maximizing gains on high-conviction setups.</span></p>
+            <li class="relative pl-4 border-l-2 border-purple-400/50">
+              <div class="font-bold text-purple-400 text-lg">Dynamic Config</div>
+              <p class="text-sm mt-1">AI decides the leverage and position size based on its confidence score.<br><span class="opacity-60 italic">Use when: You want to maximize gains on high-conviction setups.</span></p>
+            </li>
+            <li class="relative pl-4 border-l-2 border-emerald-400/50">
+              <div class="font-bold text-emerald-400 text-lg">Custom Prompt</div>
+              <p class="text-sm mt-1">Injects specialized instructions into the AI context.<br><span class="opacity-60 italic">Advanced users only.</span></p>
             </li>
           </ul>
         </div>
         <div>
-          <h3 class="text-lg text-white mb-2">Risk Management</h3>
-          <ul class="space-y-4 opacity-90">
-            <li>
-              <div class="font-bold text-cyan-400">Dynamic TP</div>
-              <p class="text-sm">Calculates Take Profit targets based on market volatility (ATR) rather than fixed percentages.<br><span class="opacity-60 italic">Recommended: Always ON for optimized exits.</span></p>
+          <h3 class="text-lg text-white mb-4 border-b border-white/10 pb-2">Risk Management</h3>
+          <ul class="space-y-6 opacity-90">
+            <li class="relative pl-4 border-l-2 border-cyan-400/50">
+              <div class="font-bold text-cyan-400 text-lg">Dynamic TP</div>
+              <p class="text-sm mt-1">Calculates Take Profit targets based on market volatility (ATR) rather than fixed percentages.<br><span class="opacity-60 italic">Recommended: Always ON for optimized exits.</span></p>
             </li>
-            <li>
-              <div class="font-bold text-rose-400">Hard Stop Loss</div>
-              <p class="text-sm">Places a physical Stop Loss order on the exchange book.<br><span class="opacity-60 italic">Mandatory for: Leverage > 20x or unattended bots.</span></p>
+            <li class="relative pl-4 border-l-2 border-rose-400/50">
+              <div class="font-bold text-rose-400 text-lg">Hard Stop Loss</div>
+              <p class="text-sm mt-1">Places a physical Stop Loss order on the exchange book.<br><span class="opacity-60 italic">Mandatory for: Leverage > 20x or unattended bots.</span></p>
             </li>
-            <li>
-              <div class="font-bold text-pink-400">Recheck TP</div>
-              <p class="text-sm">When TP is hit, AI re-evaluates. If the trend is still strong, it holds for more profit.<br><span class="opacity-60 italic">Best for: Strong trending markets (Parabolic moves).</span></p>
+            <li class="relative pl-4 border-l-2 border-pink-400/50">
+              <div class="font-bold text-pink-400 text-lg">Recheck TP</div>
+              <p class="text-sm mt-1">When TP is hit, AI re-evaluates. If the trend is still strong, it holds for more profit.<br><span class="opacity-60 italic">Use when: Catching parabolic moves.</span></p>
+            </li>
+            <li class="relative pl-4 border-l-2 border-orange-400/50">
+              <div class="font-bold text-orange-400 text-lg">FGI Thresholds</div>
+              <p class="text-sm mt-1">Filters trades based on Fear & Greed Index. <br><span class="opacity-60 italic">Example: Only buy when Fear < 38 or Greed > 62.</span></p>
             </li>
           </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- System Parameters -->
+    <section class="glass p-8 rounded-2xl">
+      <h2 class="text-2xl mb-6 text-accent"><i class="fas fa-cogs mr-2"></i>System Parameters</h2>
+      <p class="mb-6 opacity-70">Global settings that affect how the AI engine operates. Accessible via the settings cog icon.</p>
+      
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div class="bg-white/5 p-4 rounded-xl border border-white/10">
+          <h4 class="font-bold text-violet-300 mb-2">AI Creativity (Temp)</h4>
+          <p class="text-xs opacity-70">Controls the randomness of the LLM. Lower (0.1-0.3) is more deterministic/analytical. Higher (0.7+) is more creative but risky.</p>
+        </div>
+        <div class="bg-white/5 p-4 rounded-xl border border-white/10">
+          <h4 class="font-bold text-violet-300 mb-2">Analysis Freq</h4>
+          <p class="text-xs opacity-70">Time interval (in minutes) between market scans when no position is open.</p>
+        </div>
+        <div class="bg-white/5 p-4 rounded-xl border border-white/10">
+          <h4 class="font-bold text-violet-300 mb-2">Cooldown</h4>
+          <p class="text-xs opacity-70">Mandatory wait time (in minutes) after closing a position before opening a new one to prevent overtrading.</p>
+        </div>
+        <div class="bg-white/5 p-4 rounded-xl border border-white/10">
+          <h4 class="font-bold text-violet-300 mb-2">Flip Check Freq</h4>
+          <p class="text-xs opacity-70">How often (in minutes) the bot checks for a reversal signal while a position is open.</p>
+        </div>
+        <div class="bg-white/5 p-4 rounded-xl border border-white/10">
+          <h4 class="font-bold text-violet-300 mb-2">Flip Confidence</h4>
+          <p class="text-xs opacity-70">The minimum confidence level (Low, Medium, High, Very High) required to trigger an AI Flip.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Battle Manager -->
+    <section class="glass p-8 rounded-2xl border border-amber-500/20">
+      <h2 class="text-2xl mb-4 text-amber-400"><i class="fas fa-trophy mr-2"></i>Battle Manager</h2>
+      <p class="opacity-80 leading-relaxed mb-6">
+        The Battle Manager allows you to run paper-trading simulations to compare different strategies or pairs in real-time without risking real funds.
+      </p>
+      <div class="flex flex-col md:flex-row gap-6 items-center">
+        <div class="flex-1 space-y-4">
+            <div class="flex items-start gap-3">
+                <div class="bg-amber-500/20 p-2 rounded text-amber-400"><i class="fas fa-plus"></i></div>
+                <div>
+                    <h4 class="font-bold">Create Session</h4>
+                    <p class="text-xs opacity-60">Name a new battle session (e.g., "Aggressive vs Safe").</p>
+                </div>
+            </div>
+            <div class="flex items-start gap-3">
+                <div class="bg-amber-500/20 p-2 rounded text-amber-400"><i class="fas fa-user-plus"></i></div>
+                <div>
+                    <h4 class="font-bold">Add Participants</h4>
+                    <p class="text-xs opacity-60">Select active bots/pairs and assign them a virtual starting balance.</p>
+                </div>
+            </div>
+            <div class="flex items-start gap-3">
+                <div class="bg-amber-500/20 p-2 rounded text-amber-400"><i class="fas fa-chart-line"></i></div>
+                <div>
+                    <h4 class="font-bold">Track Performance</h4>
+                    <p class="text-xs opacity-60">Watch the real-time equity chart to see which strategy performs best.</p>
+                </div>
+            </div>
+        </div>
+        <div class="flex-1 bg-black/30 p-4 rounded-xl border border-white/10">
+            <div class="text-xs font-mono opacity-50 mb-2">Battle Chart Preview</div>
+            <div class="h-32 flex items-end gap-1 opacity-80">
+                <div class="w-1/4 bg-green-500/50 h-[40%] rounded-t"></div>
+                <div class="w-1/4 bg-blue-500/50 h-[60%] rounded-t"></div>
+                <div class="w-1/4 bg-red-500/50 h-[30%] rounded-t"></div>
+                <div class="w-1/4 bg-purple-500/50 h-[80%] rounded-t"></div>
+            </div>
         </div>
       </div>
     </section>
